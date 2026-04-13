@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KalenderHCM – Test Harness</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f0f2f5; }
+    .test-panel { background: #fff; border-bottom: 1px solid #ddd; padding: 12px 16px; }
+    h2 { margin: 0 0 8px; font-size: 14px; color: #333; }
+    .test-result { display: inline-block; padding: 2px 8px; border-radius: 3px; margin: 2px; font-size: 11px; font-family: monospace; }
+    .pass { background: #d4edda; color: #155724; }
+    .fail { background: #f8d7da; color: #721c24; }
+    .controls { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn { padding: 4px 10px; background: #0070f2; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    .btn:hover { background: #0064d9; }
+    .widget-container { padding: 16px; height: calc(100vh - 180px); }
+    com-custom-kalenderhcm { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="test-panel">
+    <h2>KalenderHCM Test Harness</h2>
+    <div id="test-results"></div>
+    <div class="controls">
+      <button class="btn" onclick="loadMockData()">Mock-Daten laden</button>
+      <button class="btn" onclick="clearData()">Daten leeren</button>
+      <button class="btn" onclick="navPrev()">‹ Vormonat</button>
+      <button class="btn" onclick="navNext()">› Nächster Monat</button>
+      <button class="btn" onclick="testNavigation()">Navigation testen</button>
+    </div>
+  </div>
+  <div class="widget-container">
+    <com-custom-kalenderhcm id="widget"></com-custom-kalenderhcm>
+  </div>
+
+  <script src="../src/kalender-hcm.js"></script>
+
+  <script>
+    const resultsEl = document.getElementById('test-results');
+    function assert(label, condition) {
+      const el = document.createElement('span');
+      el.className = 'test-result ' + (condition ? 'pass' : 'fail');
+      el.textContent = (condition ? '✓ ' : '✗ ') + label;
+      resultsEl.appendChild(el);
+      if (!condition) console.error('FAIL:', label);
+      return condition;
+    }
+
+    // Mock data: April 2025
+    const MOCK_STATUS = [
+      { date: '2025-04-01', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-02', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-03', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-04', employee: 'Max Mustermann', status: 'Krank' },
+      { date: '2025-04-07', employee: 'Max Mustermann', status: 'Krank' },
+      { date: '2025-04-08', employee: 'Max Mustermann', status: 'Krank' },
+      { date: '2025-04-09', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-10', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-11', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-14', employee: 'Max Mustermann', status: 'Urlaub' },
+      { date: '2025-04-15', employee: 'Max Mustermann', status: 'Urlaub' },
+      { date: '2025-04-16', employee: 'Max Mustermann', status: 'Urlaub' },
+      { date: '2025-04-17', employee: 'Max Mustermann', status: 'Urlaub' },
+      { date: '2025-04-18', employee: 'Max Mustermann', status: 'Feiertag' },
+      { date: '2025-04-21', employee: 'Max Mustermann', status: 'Feiertag' },
+      { date: '2025-04-22', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-23', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-24', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-25', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-28', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-29', employee: 'Max Mustermann', status: 'Anwesend' },
+      { date: '2025-04-30', employee: 'Max Mustermann', status: 'Sonstiges' },
+    ];
+
+    function loadMockData() {
+      const w = document.getElementById('widget');
+      w._statusMap = new Map(MOCK_STATUS.map(r => [r.date, r.status]));
+      w._employeeName = 'Max Mustermann';
+      w._currentDate = new Date('2025-04-01');
+      w._render();
+    }
+
+    function clearData() {
+      const w = document.getElementById('widget');
+      w._statusMap = new Map();
+      w._employeeName = '';
+      w._render();
+    }
+
+    function navPrev() {
+      const w = document.getElementById('widget');
+      const d = w._currentDate;
+      w.setMonth(new Date(d.getFullYear(), d.getMonth() - 1, 1).toISOString().slice(0, 10));
+    }
+
+    function navNext() {
+      const w = document.getElementById('widget');
+      const d = w._currentDate;
+      w.setMonth(new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString().slice(0, 10));
+    }
+
+    function testNavigation() {
+      const w = document.getElementById('widget');
+      w.setMonth('2025-06-01');
+      assert('setMonth() navigates to June', w._currentDate.getMonth() === 5);
+      w.setMonth('2025-04-01');
+      assert('setMonth() navigates back to April', w._currentDate.getMonth() === 3);
+    }
+
+    document.getElementById('widget').addEventListener('onDayClick', (e) => {
+      console.log('onDayClick fired:', e.detail);
+      alert('onDayClick:\nDatum: ' + e.detail.date + '\nStatus: ' + e.detail.status);
+    });
+
+    window.addEventListener('load', () => {
+      const widget = document.getElementById('widget');
+
+      assert('Widget-Element vorhanden', !!widget);
+      assert('Shadow DOM attached', !!widget.shadowRoot);
+      assert('setMonth() Methode vorhanden', typeof widget.setMonth === 'function');
+      assert('refresh() Methode vorhanden', typeof widget.refresh === 'function');
+      assert('_statusMap ist Map', widget._statusMap instanceof Map);
+
+      loadMockData();
+
+      setTimeout(() => {
+        const shadow = widget.shadowRoot;
+        assert('Toolbar gerendert (.hcm-toolbar)', !!shadow.querySelector('.hcm-toolbar'));
+        assert('Grid gerendert (.hcm-grid)', !!shadow.querySelector('.hcm-grid'));
+        assert('Legende gerendert (.hcm-legend)', !!shadow.querySelector('.hcm-legend'));
+        assert('Wochentags-Header gerendert', shadow.querySelectorAll('.hcm-col-header').length === 7);
+
+        const days = shadow.querySelectorAll('.hcm-day:not(.hcm-day--outside)');
+        assert('April hat 30 Tageszellen', days.length === 30);
+
+        const statusLabels = shadow.querySelectorAll('.hcm-status-label');
+        assert('22 Statuslabels sichtbar', statusLabels.length === 22);
+
+        const isApril2025 = new Date().getFullYear() === 2025 && new Date().getMonth() === 3;
+        if (isApril2025) {
+          assert('Heute-Zelle hat .hcm-day--today', !!shadow.querySelector('.hcm-day--today'));
+        }
+
+        let clickFired = false;
+        widget.addEventListener('onDayClick', (e) => {
+          if (e.detail.date === '2025-04-04') clickFired = true;
+        });
+        const april4 = shadow.querySelector('.hcm-day[data-date="2025-04-04"]');
+        assert('April 4 Zelle vorhanden', !!april4);
+        if (april4) {
+          april4.click();
+          assert('onDayClick fired bei Klick auf April 4', clickFired);
+        }
+
+        const title = shadow.querySelector('.hcm-employee');
+        assert('Mitarbeitername im Header', !!title && title.textContent.includes('Max Mustermann'));
+
+      }, 100);
+    });
+  </script>
+</body>
+</html>
