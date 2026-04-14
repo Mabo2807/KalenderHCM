@@ -11,6 +11,7 @@
   --sap-border:         #d9d9d9;
   --sap-shell:          #ffffff;
   --sap-negative:       #aa0808;
+  --sap-weekend-bg:     #f0f0f0;
   font-family: '72', Arial, Helvetica, sans-serif;
   font-size: 14px;
   color: var(--sap-text);
@@ -127,13 +128,16 @@
   transition: box-shadow 0.1s;
   user-select: none;
 }
-.hcm-day:hover:not(.hcm-day--outside) {
+.hcm-day:hover:not(.hcm-day--outside):not(.hcm-day--today) {
   box-shadow: 0 0 0 2px var(--sap-brand);
   z-index: 1;
   position: relative;
 }
-.hcm-day--weekend { background: #f0f0f0; }
-.hcm-day--today   { box-shadow: 0 0 0 2px var(--sap-brand); }
+.hcm-day--weekend { background: var(--sap-weekend-bg); }
+.hcm-day--today   {
+  box-shadow: 0 0 0 2px var(--sap-brand);
+  background: #e8f2fe;
+}
 .hcm-day--outside {
   opacity: 0.4;
   cursor: default;
