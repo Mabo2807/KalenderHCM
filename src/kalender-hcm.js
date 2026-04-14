@@ -45,6 +45,12 @@
     return toISODate(new Date());
   }
 
+  // Parse a YYYY-MM-DD string in local time (avoids UTC midnight off-by-one on UTC-X timezones)
+  function parseISODateLocal(str) {
+    const parts = str.split('-');
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+
   // Convert "#rrggbb" to rgba with given alpha for cell backgrounds
   function hexToRgba(hex, alpha) {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -60,6 +66,11 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  // Validate that a value is a safe 6-digit hex color (prevents CSS injection)
+  function isSafeHex(v) {
+    return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
   }
 
   class KalenderHcm extends HTMLElement {
@@ -82,7 +93,7 @@
 
     onCustomWidgetAfterUpdate(changedProperties) {
       if ('currentDate' in changedProperties && this.currentDate) {
-        this._currentDate = new Date(this.currentDate);
+        this._currentDate = parseISODateLocal(this.currentDate);
       }
       if ('colorScheme' in changedProperties) {
         this._colorScheme = this.colorScheme || {};
@@ -114,7 +125,7 @@
     // -------------------------------------------------------------------------
 
     setMonth(isoDate) {
-      const d = new Date(isoDate);
+      const d = parseISODateLocal(isoDate);
       if (!isNaN(d)) {
         this._currentDate = d;
         this._render();
@@ -219,10 +230,20 @@
         if (dow === 0 || dow === 6) weekendCols.add(i);
       }
 
+      // If showWeekends is false, determine which column indices to keep
+      const visibleCols = [];
+      for (let i = 0; i < 7; i++) {
+        if (this._showWeekends || !weekendCols.has(i)) {
+          visibleCols.push(i);
+        }
+      }
+      const colCount = visibleCols.length; // 5 or 7
+
       // Column headers
-      const headersHtml = dayNames.map((name, i) =>
-        `<div class="hcm-col-header${weekendCols.has(i) ? ' hcm-col-header--weekend' : ''}">${name}</div>`
-      ).join('');
+      const headersHtml = dayNames.map((name, i) => {
+        if (!visibleCols.includes(i)) return '';
+        return `<div class="hcm-col-header${weekendCols.has(i) ? ' hcm-col-header--weekend' : ''}">${name}</div>`;
+      }).join('');
 
       // Day cells
       let cellsHtml = '';
@@ -234,6 +255,7 @@
 
         if (!isCurrent) {
           // Dimmed cell for prev/next month days
+          if (!this._showWeekends && weekendCols.has(col)) continue;
           let dimDay;
           if (dayNum < 1) {
             dimDay = new Date(year, month, dayNum);
@@ -244,9 +266,15 @@
           continue;
         }
 
+        // Skip weekend cells when showWeekends is false
+        if (!this._showWeekends && isWeekend) {
+          continue;
+        }
+
         const isoDate    = toISODate(new Date(year, month, dayNum));
         const status     = this._statusMap.get(isoDate) || '';
-        const accentHex  = status ? (colors[status] || '#556b82') : null;
+        const rawHex     = status ? (colors[status] || '#556b82') : null;
+        const accentHex  = rawHex && isSafeHex(rawHex) ? rawHex : (status ? '#556b82' : null);
         const bgStyle    = accentHex ? `background:${hexToRgba(accentHex, 0.12)};` : '';
         const isToday    = isoDate === today;
 
@@ -271,12 +299,13 @@
       }
 
       // Legend — all configured statuses
-      const legendHtml = Object.entries(colors).map(([name, hex]) =>
-        `<div class="hcm-legend-item">
-          <span class="hcm-legend-swatch" style="background:${hexToRgba(hex, 0.15)};border-color:${hex};"></span>
-          <span class="hcm-legend-label" style="color:${hex};">${esc(name)}</span>
-        </div>`
-      ).join('');
+      const legendHtml = Object.entries(colors).map(([name, hex]) => {
+        const safeHex = isSafeHex(hex) ? hex : '#556b82';
+        return `<div class="hcm-legend-item">
+          <span class="hcm-legend-swatch" style="background:${hexToRgba(safeHex, 0.15)};border-color:${safeHex};"></span>
+          <span class="hcm-legend-label" style="color:${safeHex};">${esc(name)}</span>
+        </div>`;
+      }).join('');
 
       const employeeHtml = this._employeeName
         ? `<span class="hcm-employee">${esc(this._employeeName)}</span>`
@@ -294,8 +323,8 @@
             <button class="hcm-nav-btn" id="btn-next">&#8250;</button>
           </div>
           <div class="hcm-grid-wrap">
-            <div class="hcm-col-headers">${headersHtml}</div>
-            <div class="hcm-grid">${cellsHtml}</div>
+            <div class="hcm-col-headers" style="grid-template-columns:repeat(${colCount},1fr)">${headersHtml}</div>
+            <div class="hcm-grid" style="grid-template-columns:repeat(${colCount},1fr)">${cellsHtml}</div>
           </div>
           <div class="hcm-legend">${legendHtml}</div>
         </div>
