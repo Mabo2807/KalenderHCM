@@ -126,7 +126,7 @@ KalenderHCM/
   - Kein Eintrag = neutralgrauer Hintergrund (`#f5f6f7`), kein Label
   - Heute = zusätzlicher blauer Rahmen (`#0070f2`, 2 px) und blaue Tagesnummer
   - Wochenenden = Hintergrund `#f0f0f0`, Tagesnummer rot — Status-Überschreibung hat Vorrang
-  - Tage außerhalb des aktuellen Monats (Vor-/Nachmonat) = ausgeblendet (leere Zelle) oder gedimmt
+  - Tage außerhalb des aktuellen Monats (Vor-/Nachmonat) = gedimmt (Tagesnummer in 40 % Deckkraft, kein Status-Label, kein Klick-Event)
 - **Navigation**: `‹` Vorheriger Monat | `Monat Jahr` zentriert | `›` Nächster Monat
 - **Mitarbeitername** (wenn `employeeColumn` gebunden): unterhalb des Monat/Jahr-Titels in Sekundärfarbe
 - **Legende** am unteren Rand: alle konfigurierten Status als Farbkachel + Name
