@@ -6,10 +6,10 @@
   "newInstancePrefix": "KalenderHCM",
   "vendor": "",
   "license": "internal use",
-  "main": "src/kalender-hcm.js",
-  "builder": "src/kalender-hcm-builder.js",
-  "styling": "src/kalender-hcm-styling.js",
-  "icon": "icon.png",
+  "main": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
+  "builder": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
+  "styling": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-styling.js",
+  "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
   "properties": {
     "currentDate": {
       "type": "string",
