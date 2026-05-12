@@ -84,6 +84,9 @@
     onCustomWidgetBeforeUpdate(changedProperties) {}
 
     onCustomWidgetAfterUpdate(changedProperties) {
+      // Debug: alle geänderten Properties loggen
+      console.log('KalenderHCM onCustomWidgetAfterUpdate:', Object.keys(changedProperties));
+
       if ('currentDate' in changedProperties && this.currentDate) {
         this._currentDate = parseISODateLocal(this.currentDate);
       }
@@ -96,9 +99,8 @@
       if ('openInNewTab' in changedProperties) {
         this._openInNewTab = this.openInNewTab !== false;
       }
-      if ('dataBinding' in changedProperties) {
-        this._processDataBinding();
-      }
+      // Daten verarbeiten bei jeder Änderung (dataBinding oder initial)
+      this._processDataBinding();
       this._render();
     }
 
@@ -267,8 +269,18 @@
       const employeeHtml = this._employeeName
         ? `<span class="hcm-employee">${esc(this._employeeName)}</span>` : '';
 
+      // Debug-Info zusammenstellen
+      const db = this.dataBinding;
+      const debugInfo = `dataBinding: ${db ? 'vorhanden' : 'NULL'} | ` +
+        `rows: ${db && db.data ? db.data.length : 0} | ` +
+        `statusMap: ${this._statusMap.size} | ` +
+        `ersteZeile: ${db && db.data && db.data[0] ? JSON.stringify(db.data[0]).substring(0, 120) : 'keine'}`;
+
       this._shadowRoot.innerHTML = `
         <link rel="stylesheet" href="${cssUrl}">
+        <div style="background:#fff3cd;border:1px solid #ffc107;padding:6px 8px;font-size:10px;font-family:monospace;word-break:break-all;margin-bottom:4px;border-radius:4px;">
+          🔍 DEBUG: ${debugInfo}
+        </div>
         <div class="hcm-root">
           <div class="hcm-toolbar">
             <button class="hcm-nav-btn" id="btn-prev">&#8249;</button>
