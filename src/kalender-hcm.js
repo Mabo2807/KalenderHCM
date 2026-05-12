@@ -49,6 +49,20 @@
     return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
   }
 
+  // Normalisiert SAC-Datumsformate zu YYYY-MM-DD:
+  // "20260401" → "2026-04-01", "2026-04-01" bleibt, "2026/04/01" → "2026-04-01"
+  function normalizeDateStr(str) {
+    if (!str) return '';
+    const s = String(str).trim();
+    // Bereits YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+    // YYYYMMDD (SAC-Kalender-Format)
+    if (/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    // YYYY/MM/DD
+    if (/^\d{4}\/\d{2}\/\d{2}/.test(s)) return s.substring(0, 10).replace(/\//g, '-');
+    return s.substring(0, 10);
+  }
+
   class KalenderHcm extends HTMLElement {
     constructor() {
       super();
@@ -108,13 +122,26 @@
       this._employeeName = '';
 
       const db = this.dataBinding;
-      if (!db || !db.data || db.data.length === 0) return;
+
+      // Debug: vollständige Struktur ausgeben
+      console.log('KalenderHCM dataBinding:', JSON.stringify(db, null, 2));
+
+      if (!db || !db.data || db.data.length === 0) {
+        console.warn('KalenderHCM: Keine Daten im dataBinding.');
+        return;
+      }
 
       try {
         const feeds = db.metadata && db.metadata.feeds;
+        console.log('KalenderHCM feeds:', JSON.stringify(feeds, null, 2));
+        console.log('KalenderHCM erste Datenzeile:', JSON.stringify(db.data[0], null, 2));
+
+        // Feed-ID ermitteln: SAC legt die tatsächliche Dimensions-ID ab
         const dateFeed     = feeds && feeds.dateColumn     && feeds.dateColumn.values     && feeds.dateColumn.values[0]     && feeds.dateColumn.values[0].id;
         const statusFeed   = feeds && feeds.statusColumn   && feeds.statusColumn.values   && feeds.statusColumn.values[0]   && feeds.statusColumn.values[0].id;
         const employeeFeed = feeds && feeds.employeeColumn && feeds.employeeColumn.values && feeds.employeeColumn.values[0] && feeds.employeeColumn.values[0].id;
+
+        console.log('KalenderHCM Feed-IDs:', { dateFeed, statusFeed, employeeFeed });
 
         if (!dateFeed || !statusFeed) {
           console.warn('KalenderHCM: Datum- oder Status-Feed nicht verbunden.');
@@ -122,13 +149,27 @@
         }
 
         for (const row of db.data) {
-          const date   = String(row[dateFeed]   || '').substring(0, 10);
-          const status = String(row[statusFeed] || '');
+          // SAC kann Werte als String ODER als Objekt {id, label} liefern
+          const rawDate   = row[dateFeed];
+          const rawStatus = row[statusFeed];
+
+          const dateStr   = rawDate   && typeof rawDate   === 'object' ? (rawDate.id   || rawDate.label || '') : String(rawDate   || '');
+          const statusStr = rawStatus && typeof rawStatus === 'object' ? (rawStatus.id || rawStatus.label || '') : String(rawStatus || '');
+
+          // Datum normalisieren: YYYYMMDD → YYYY-MM-DD
+          const date = normalizeDateStr(dateStr);
+          const status = statusStr.trim();
+
           if (date && status) this._statusMap.set(date, status);
+
           if (employeeFeed && !this._employeeName) {
-            this._employeeName = String(row[employeeFeed] || '');
+            const rawEmp = row[employeeFeed];
+            const empStr = rawEmp && typeof rawEmp === 'object' ? (rawEmp.label || rawEmp.id || '') : String(rawEmp || '');
+            this._employeeName = empStr.trim();
           }
         }
+
+        console.log('KalenderHCM statusMap Einträge:', this._statusMap.size);
       } catch (e) {
         console.error('KalenderHCM: Fehler beim Verarbeiten der Daten:', e);
       }
