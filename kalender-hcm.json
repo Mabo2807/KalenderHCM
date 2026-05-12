@@ -11,14 +11,14 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
-      "integrity": "sha384-aG4gIvoejDBYc2kf6pPr/tdRNyCsY8DNjVlwQrsk49FIJicNeP67hBznbLKsLFni",
+      "integrity": "sha384-nJLmQT/imCEZcDJ6X5drAkPAxIaCs8HOyHcclHZCYNVpWtSTxvrF8Bk0rbODjT3G",
       "ignoreIntegrity": true
     },
     {
       "kind": "builder",
       "tag": "com-custom-kalenderhcm-builder",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
-      "integrity": "sha384-XiK4xOFsZt5fHcZMoMCV/vazwMN83wP6zIWHzWtzsiHwu2byhIbNSOeVmWxlvMzi",
+      "integrity": "sha384-e/8mOlhfk9KUDYDthIkA80fydvKKUkVLoyBS8c4PsKWpjJoEXFywdxhXG7xpg4n8",
       "ignoreIntegrity": true
     },
     {
@@ -30,6 +30,21 @@
     }
   ],
   "properties": {
+    "dateColumnId": {
+      "type": "string",
+      "description": "Technische ID der Datum-Dimension im Datensatz",
+      "default": ""
+    },
+    "statusColumnId": {
+      "type": "string",
+      "description": "Technische ID der Status-Dimension im Datensatz",
+      "default": ""
+    },
+    "employeeColumnId": {
+      "type": "string",
+      "description": "Technische ID der Mitarbeiter-Dimension im Datensatz (optional)",
+      "default": ""
+    },
     "currentDate": {
       "type": "string",
       "description": "Angezeigter Monat als ISO-Datum (YYYY-MM-DD)",

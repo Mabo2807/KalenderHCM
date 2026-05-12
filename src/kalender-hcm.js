@@ -104,7 +104,10 @@
       if ('firstDayOfWeek' in changedProperties) {
         this._firstDayOfWeek = this.firstDayOfWeek !== undefined ? this.firstDayOfWeek : 1;
       }
-      if ('dataBinding' in changedProperties) {
+      if ('dataBinding' in changedProperties ||
+          'dateColumnId' in changedProperties ||
+          'statusColumnId' in changedProperties ||
+          'employeeColumnId' in changedProperties) {
         this._processDataBinding();
       }
       this._render();
@@ -150,12 +153,13 @@
 
       try {
         const meta = db.metadata;
-        const dateFeed     = meta.feeds.dateColumn?.values?.[0]?.id;
-        const statusFeed   = meta.feeds.statusColumn?.values?.[0]?.id;
-        const employeeFeed = meta.feeds.employeeColumn?.values?.[0]?.id;
+        // Configured column IDs take priority over feed mappings
+        const dateFeed     = this.dateColumnId     || meta.feeds?.dateColumn?.values?.[0]?.id;
+        const statusFeed   = this.statusColumnId   || meta.feeds?.statusColumn?.values?.[0]?.id;
+        const employeeFeed = this.employeeColumnId || meta.feeds?.employeeColumn?.values?.[0]?.id;
 
         if (!dateFeed || !statusFeed) {
-          console.warn('KalenderHCM: dateColumn oder statusColumn nicht gebunden.');
+          console.warn('KalenderHCM: Datum- oder Status-Spalte nicht konfiguriert.');
           return;
         }
 
