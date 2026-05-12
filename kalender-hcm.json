@@ -11,18 +11,21 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
+      "integrity": "sha384-m5ZrLcF6yOkFPeeaU3vBHwMkhPWVqPa1bC9XeuA6AhonoWnNULge6WTUqLlyeMrL",
       "ignoreIntegrity": true
     },
     {
       "kind": "builder",
       "tag": "com-custom-kalenderhcm-builder",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
+      "integrity": "sha384-XiK4xOFsZt5fHcZMoMCV/vazwMN83wP6zIWHzWtzsiHwu2byhIbNSOeVmWxlvMzi",
       "ignoreIntegrity": true
     },
     {
       "kind": "styling",
       "tag": "com-custom-kalenderhcm-styling",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-styling.js",
+      "integrity": "sha384-NAcK56yrODLTJis8u+aPvYnSeyueg6+XzA6eCqgeBS2z0cTks4gYHQXV/dlfddM1",
       "ignoreIntegrity": true
     }
   ],
@@ -74,23 +77,17 @@
         {
           "id": "dateColumn",
           "description": "Datum-Dimension (YYYY-MM-DD)",
-          "type": "dimension",
-          "min": 1,
-          "max": 1
+          "type": "dimension"
         },
         {
           "id": "statusColumn",
           "description": "Statuswert (z.B. Krank, Urlaub, Anwesend)",
-          "type": "dimension",
-          "min": 1,
-          "max": 1
+          "type": "dimension"
         },
         {
           "id": "employeeColumn",
           "description": "Mitarbeitername (optional, für Header-Anzeige)",
-          "type": "dimension",
-          "min": 0,
-          "max": 1
+          "type": "dimension"
         }
       ]
     }
