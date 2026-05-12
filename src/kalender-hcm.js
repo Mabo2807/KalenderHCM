@@ -50,7 +50,7 @@
   }
 
   // Normalisiert SAC-Datumsformate zu YYYY-MM-DD:
-  // "20260401" → "2026-04-01", "2026-04-01" bleibt, "2026/04/01" → "2026-04-01"
+  // "20260401" → "2026-04-01", "2026-04-01" bleibt, "Jan 2, 2025" → "2025-01-02"
   function normalizeDateStr(str) {
     if (!str) return '';
     const s = String(str).trim();
@@ -60,7 +60,10 @@
     if (/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
     // YYYY/MM/DD
     if (/^\d{4}\/\d{2}\/\d{2}/.test(s)) return s.substring(0, 10).replace(/\//g, '-');
-    return s.substring(0, 10);
+    // Fallback: "Jan 2, 2025" oder andere lokalisierte Formate → Date-Parser
+    const d = new Date(s);
+    if (!isNaN(d)) return toISODate(d);
+    return '';
   }
 
   class KalenderHcm extends HTMLElement {
