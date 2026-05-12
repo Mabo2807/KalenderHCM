@@ -5,7 +5,6 @@
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben für SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
   "vendor": "",
-  "license": "internal use",
   "main": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
   "builder": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
   "styling": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-styling.js",
