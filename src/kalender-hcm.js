@@ -127,12 +127,23 @@
       this._employeeName = '';
 
       const db = this.dataBinding;
+      console.log('KalenderHCM dataBinding keys:', db ? Object.keys(db) : 'NULL');
+      console.log('KalenderHCM state:', db && db.state);
+      console.log('KalenderHCM messages:', db && db.messages);
 
-      // Debug: vollständige Struktur ausgeben
-      console.log('KalenderHCM dataBinding:', JSON.stringify(db, null, 2));
+      if (!db) return;
 
-      if (!db || !db.data || db.data.length === 0) {
-        console.warn('KalenderHCM: Keine Daten im dataBinding.');
+      // Daten können je nach SAC-Version unter verschiedenen Pfaden liegen
+      const rows = Array.isArray(db.data)      ? db.data
+                 : Array.isArray(db.rows)      ? db.rows
+                 : Array.isArray(db.result)    ? db.result
+                 : Array.isArray(db.resultSet) ? db.resultSet
+                 : null;
+
+      console.log('KalenderHCM rows gefunden:', rows ? rows.length : 'keiner');
+
+      if (!rows || rows.length === 0) {
+        console.warn('KalenderHCM: Keine Datenzeilen gefunden. State:', db.state);
         return;
       }
 
@@ -153,7 +164,7 @@
           return;
         }
 
-        for (const row of db.data) {
+        for (const row of rows) {
           // SAC kann Werte als String ODER als Objekt {id, label} liefern
           const rawDate   = row[dateFeed];
           const rawStatus = row[statusFeed];
@@ -274,11 +285,16 @@
       let dbDump = 'NULL';
       if (db) {
         try {
-          // Alle eigenen Properties des dataBinding-Objekts ausgeben
           const keys = Object.keys(db);
-          dbDump = `keys:[${keys.join(',')}] | `;
-          dbDump += `data:${Array.isArray(db.data) ? db.data.length + ' rows' : typeof db.data} | `;
-          dbDump += `metadata:${db.metadata ? JSON.stringify(db.metadata).substring(0, 200) : 'none'}`;
+          const state = db.state !== undefined ? JSON.stringify(db.state) : 'n/a';
+          const msgs  = db.messages ? JSON.stringify(db.messages).substring(0, 150) : 'none';
+          // Alle möglichen Datenpfade prüfen
+          const d1 = Array.isArray(db.data)       ? 'data:' + db.data.length       : '';
+          const d2 = Array.isArray(db.rows)       ? 'rows:' + db.rows.length       : '';
+          const d3 = Array.isArray(db.result)     ? 'result:' + db.result.length   : '';
+          const d4 = Array.isArray(db.resultSet)  ? 'resultSet:' + db.resultSet.length : '';
+          const found = [d1,d2,d3,d4].filter(Boolean).join(' | ') || 'kein Array-Pfad';
+          dbDump = `keys:[${keys.join(',')}] state:${state} msgs:${msgs} | ${found}`;
         } catch(e) { dbDump = 'Fehler: ' + e.message; }
       }
 
