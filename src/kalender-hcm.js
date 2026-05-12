@@ -271,15 +271,22 @@
 
       // Debug-Info zusammenstellen
       const db = this.dataBinding;
-      const debugInfo = `dataBinding: ${db ? 'vorhanden' : 'NULL'} | ` +
-        `rows: ${db && db.data ? db.data.length : 0} | ` +
-        `statusMap: ${this._statusMap.size} | ` +
-        `ersteZeile: ${db && db.data && db.data[0] ? JSON.stringify(db.data[0]).substring(0, 120) : 'keine'}`;
+      let dbDump = 'NULL';
+      if (db) {
+        try {
+          // Alle eigenen Properties des dataBinding-Objekts ausgeben
+          const keys = Object.keys(db);
+          dbDump = `keys:[${keys.join(',')}] | `;
+          dbDump += `data:${Array.isArray(db.data) ? db.data.length + ' rows' : typeof db.data} | `;
+          dbDump += `metadata:${db.metadata ? JSON.stringify(db.metadata).substring(0, 200) : 'none'}`;
+        } catch(e) { dbDump = 'Fehler: ' + e.message; }
+      }
 
       this._shadowRoot.innerHTML = `
         <link rel="stylesheet" href="${cssUrl}">
         <div style="background:#fff3cd;border:1px solid #ffc107;padding:6px 8px;font-size:10px;font-family:monospace;word-break:break-all;margin-bottom:4px;border-radius:4px;">
-          🔍 DEBUG: ${debugInfo}
+          🔍 DB: ${dbDump}<br>
+          statusMap: ${this._statusMap.size} Einträge
         </div>
         <div class="hcm-root">
           <div class="hcm-toolbar">
