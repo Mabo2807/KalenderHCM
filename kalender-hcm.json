@@ -1,6 +1,6 @@
 {
   "id": "com.custom.kalenderhcm",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben für SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -11,14 +11,7 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
-      "integrity": "sha384-K71YEKjBIiUHuamDpJOkX+HGMvr0rb0zKBEl3tfj/vjT/KwvAczHfXF7l3vocyDe",
-      "ignoreIntegrity": true
-    },
-    {
-      "kind": "builder",
-      "tag": "com-custom-kalenderhcm-builder",
-      "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
-      "integrity": "sha384-1i9pqSxVlnJDPafIM7SJEA06Bz8jKih0zjQvKHl0uFDTVqw2r011q+S8bV33to4V",
+      "integrity": "sha384-8SYXxxBUlqAmjkwYN2LRAzxRBeCMDUf5CrHIJy2L2hK36eIvhNPV6CK3ghxwmJrG",
       "ignoreIntegrity": true
     },
     {
@@ -30,21 +23,6 @@
     }
   ],
   "properties": {
-    "dateColumnId": {
-      "type": "string",
-      "description": "Technische ID der Datum-Dimension im Datensatz",
-      "default": ""
-    },
-    "statusColumnId": {
-      "type": "string",
-      "description": "Technische ID der Status-Dimension im Datensatz",
-      "default": ""
-    },
-    "employeeColumnId": {
-      "type": "string",
-      "description": "Technische ID der Mitarbeiter-Dimension im Datensatz (optional)",
-      "default": ""
-    },
     "currentDate": {
       "type": "string",
       "description": "Angezeigter Monat als ISO-Datum (YYYY-MM-DD)",
@@ -55,16 +33,6 @@
       "description": "Status-Name → Akzentfarbe als JSON-String z.B. {\"Krank\":\"#e76500\"}",
       "default": "{}"
     },
-    "showWeekends": {
-      "type": "boolean",
-      "description": "Samstag und Sonntag anzeigen",
-      "default": true
-    },
-    "firstDayOfWeek": {
-      "type": "integer",
-      "description": "Erster Wochentag: 0 = Sonntag, 1 = Montag",
-      "default": 1
-    },
     "navigationUrl": {
       "type": "string",
       "description": "URL-Template bei Tag-Klick. Platzhalter: {date}, {status}",
@@ -74,11 +42,6 @@
       "type": "boolean",
       "description": "Navigation-URL in neuem Tab öffnen",
       "default": true
-    },
-    "dataJson": {
-      "type": "string",
-      "description": "Anwesenheitsdaten als JSON-Array [{date,status,employee}] — für SAC Story",
-      "default": ""
     }
   },
   "methods": {

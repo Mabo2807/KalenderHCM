@@ -1,25 +1,16 @@
 /**
  * kalender-hcm.js
- *
  * SAC Custom Widget: KalenderHCM
- * Zeigt Anwesenheitsstatus eines Mitarbeiters als farbigen Monatskalender.
- *
  * Web Component: <com-custom-kalenderhcm>
  */
 
 (function () {
   'use strict';
 
-  // Base URL for CSS <link> inside Shadow DOM
   const _WIDGET_BASE_URL = (function () {
-    try {
-      return new URL('.', document.currentScript.src).href;
-    } catch (e) {
-      return '';
-    }
+    try { return new URL('.', document.currentScript.src).href; } catch (e) { return ''; }
   }());
 
-  // Default status colors (accent colors, SAP Fiori palette)
   const DEFAULT_COLOR_SCHEME = {
     'Anwesend': '#256f3a',
     'Krank':    '#e76500',
@@ -29,46 +20,31 @@
   };
 
   const WEEKDAYS_DE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const MONTHS_DE = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+  const MONTHS_DE   = [
+    'Januar','Februar','März','April','Mai','Juni',
+    'Juli','August','September','Oktober','November','Dezember',
   ];
 
   function toISODate(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  function todayISO() {
-    return toISODate(new Date());
-  }
-
-  // Parse a YYYY-MM-DD string in local time (avoids UTC midnight off-by-one on UTC-X timezones)
   function parseISODateLocal(str) {
-    const parts = str.split('-');
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const p = str.split('-');
+    return new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
   }
 
-  // Convert "#rrggbb" to rgba with given alpha for cell backgrounds
   function hexToRgba(hex, alpha) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
     return `rgba(${r},${g},${b},${alpha})`;
   }
 
-  // Escape HTML special chars
   function esc(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // Validate that a value is a safe 6-digit hex color (prevents CSS injection)
   function isSafeHex(v) {
     return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
   }
@@ -76,20 +52,17 @@
   class KalenderHcm extends HTMLElement {
     constructor() {
       super();
-      this._shadowRoot = this.attachShadow({ mode: 'open' });
-      this._currentDate = new Date();
-      this._statusMap = new Map();   // isoDate → status string
-      this._colorScheme = {};
-      this._showWeekends = true;
-      this._firstDayOfWeek = 1;
-      this._employeeName = '';
+      this._shadowRoot    = this.attachShadow({ mode: 'open' });
+      this._currentDate   = new Date();
+      this._statusMap     = new Map();
+      this._colorScheme   = {};
+      this._employeeName  = '';
       this._navigationUrl = '';
-      this._openInNewTab = true;
+      this._openInNewTab  = true;
+      // Hardcoded: Montag als erster Tag, Wochenenden immer sichtbar
+      this._firstDayOfWeek = 1;
+      this._showWeekends   = true;
     }
-
-    // -------------------------------------------------------------------------
-    // SAC Lifecycle Hooks
-    // -------------------------------------------------------------------------
 
     onCustomWidgetBeforeUpdate(changedProperties) {}
 
@@ -100,49 +73,29 @@
       if ('colorScheme' in changedProperties) {
         try { this._colorScheme = JSON.parse(this.colorScheme || '{}'); } catch (e) { this._colorScheme = {}; }
       }
-      if ('showWeekends' in changedProperties) {
-        this._showWeekends = this.showWeekends !== false;
-      }
-      if ('firstDayOfWeek' in changedProperties) {
-        this._firstDayOfWeek = this.firstDayOfWeek !== undefined ? this.firstDayOfWeek : 1;
-      }
       if ('navigationUrl' in changedProperties) {
         this._navigationUrl = this.navigationUrl || '';
       }
       if ('openInNewTab' in changedProperties) {
         this._openInNewTab = this.openInNewTab !== false;
       }
-      if ('dataJson' in changedProperties && this.dataJson) {
-        this._processDataJson();
-      } else if ('dataBinding' in changedProperties ||
-                 'dateColumnId' in changedProperties ||
-                 'statusColumnId' in changedProperties ||
-                 'employeeColumnId' in changedProperties) {
-        if (!this.dataJson) this._processDataBinding();
+      if ('dataBinding' in changedProperties) {
+        this._processDataBinding();
       }
       this._render();
     }
 
-    onCustomWidgetResize() {
-      // No resize-specific logic needed for CSS Grid layout
-    }
-
+    onCustomWidgetResize() {}
     onCustomWidgetDestroy() {}
 
     connectedCallback() {
       this._render();
     }
 
-    // -------------------------------------------------------------------------
-    // Public Methods (SAC Scripting)
-    // -------------------------------------------------------------------------
-
+    // Public SAC scripting methods
     setMonth(isoDate) {
       const d = parseISODateLocal(isoDate);
-      if (!isNaN(d)) {
-        this._currentDate = d;
-        this._render();
-      }
+      if (!isNaN(d)) { this._currentDate = d; this._render(); }
     }
 
     refresh() {
@@ -150,58 +103,28 @@
       this._render();
     }
 
-    // -------------------------------------------------------------------------
-    // JSON Data Input (for SAC Stories where dataBinding UI is unavailable)
-    // -------------------------------------------------------------------------
-
-    _processDataJson() {
-      this._statusMap = new Map();
-      this._employeeName = '';
-      try {
-        const arr = JSON.parse(this.dataJson || '[]');
-        if (!Array.isArray(arr)) return;
-        for (const row of arr) {
-          const date   = String(row.date   || row.Datum    || '').substring(0, 10);
-          const status = String(row.status || row.Status   || '');
-          if (date && status) this._statusMap.set(date, status);
-          if (!this._employeeName) {
-            this._employeeName = String(row.employee || row.Mitarbeiter || '');
-          }
-        }
-      } catch (e) {
-        console.error('KalenderHCM: Fehler beim Parsen von dataJson:', e);
-      }
-    }
-
-    // -------------------------------------------------------------------------
-    // SAC Data Binding
-    // -------------------------------------------------------------------------
-
     _processDataBinding() {
-      const db = this.dataBinding;
-      this._statusMap = new Map();
+      this._statusMap    = new Map();
       this._employeeName = '';
 
+      const db = this.dataBinding;
       if (!db || !db.data || db.data.length === 0) return;
 
       try {
-        const meta = db.metadata;
-        // Configured column IDs take priority over feed mappings
-        const dateFeed     = this.dateColumnId     || meta.feeds?.dateColumn?.values?.[0]?.id;
-        const statusFeed   = this.statusColumnId   || meta.feeds?.statusColumn?.values?.[0]?.id;
-        const employeeFeed = this.employeeColumnId || meta.feeds?.employeeColumn?.values?.[0]?.id;
+        const feeds = db.metadata && db.metadata.feeds;
+        const dateFeed     = feeds && feeds.dateColumn     && feeds.dateColumn.values     && feeds.dateColumn.values[0]     && feeds.dateColumn.values[0].id;
+        const statusFeed   = feeds && feeds.statusColumn   && feeds.statusColumn.values   && feeds.statusColumn.values[0]   && feeds.statusColumn.values[0].id;
+        const employeeFeed = feeds && feeds.employeeColumn && feeds.employeeColumn.values && feeds.employeeColumn.values[0] && feeds.employeeColumn.values[0].id;
 
         if (!dateFeed || !statusFeed) {
-          console.warn('KalenderHCM: Datum- oder Status-Spalte nicht konfiguriert.');
+          console.warn('KalenderHCM: Datum- oder Status-Feed nicht verbunden.');
           return;
         }
 
         for (const row of db.data) {
           const date   = String(row[dateFeed]   || '').substring(0, 10);
           const status = String(row[statusFeed] || '');
-          if (date && status) {
-            this._statusMap.set(date, status);
-          }
+          if (date && status) this._statusMap.set(date, status);
           if (employeeFeed && !this._employeeName) {
             this._employeeName = String(row[employeeFeed] || '');
           }
@@ -211,110 +134,65 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // Effective color scheme: presets merged with user config (user wins)
-    // -------------------------------------------------------------------------
-
     _effectiveColors() {
       return Object.assign({}, DEFAULT_COLOR_SCHEME, this._colorScheme);
     }
 
-    // -------------------------------------------------------------------------
-    // Event Firing (SAC + CustomEvent fallback)
-    // -------------------------------------------------------------------------
-
     _fireEvent(eventName, payload) {
-      if (typeof this.fireEvent === 'function') {
-        this.fireEvent(eventName, payload);
-      }
-      this.dispatchEvent(new CustomEvent(eventName, {
-        detail: payload,
-        bubbles: true,
-        composed: true,
-      }));
+      if (typeof this.fireEvent === 'function') this.fireEvent(eventName, payload);
+      this.dispatchEvent(new CustomEvent(eventName, { detail: payload, bubbles: true, composed: true }));
     }
 
-    // -------------------------------------------------------------------------
-    // Render
-    // -------------------------------------------------------------------------
-
     _render() {
-      const cssUrl = _WIDGET_BASE_URL + 'kalender-hcm.css';
-      const d = this._currentDate;
-      const year  = d.getFullYear();
-      const month = d.getMonth();          // 0-based
-      const today = todayISO();
-      const colors = this._effectiveColors();
-      const fdow = this._firstDayOfWeek;   // 0=Sun, 1=Mon
+      const cssUrl  = _WIDGET_BASE_URL + 'kalender-hcm.css';
+      const d       = this._currentDate;
+      const year    = d.getFullYear();
+      const month   = d.getMonth();
+      const today   = toISODate(new Date());
+      const colors  = this._effectiveColors();
+      const fdow    = 1; // Montag fest
 
-      // Calendar math
       const firstOfMonth = new Date(year, month, 1);
       const lastOfMonth  = new Date(year, month + 1, 0);
       const totalDays    = lastOfMonth.getDate();
       const prefill      = (firstOfMonth.getDay() - fdow + 7) % 7;
       const totalCells   = Math.ceil((prefill + totalDays) / 7) * 7;
+      const numWeeks     = Math.ceil((prefill + totalDays) / 7);
 
-      // Build ordered weekday names for headers
       const dayNames = [];
-      for (let i = 0; i < 7; i++) {
-        dayNames.push(WEEKDAYS_DE[(fdow + i) % 7]);
-      }
+      for (let i = 0; i < 7; i++) dayNames.push(WEEKDAYS_DE[(fdow + i) % 7]);
 
-      // Which grid columns (0-6) are weekends
       const weekendCols = new Set();
       for (let i = 0; i < 7; i++) {
         const dow = (fdow + i) % 7;
         if (dow === 0 || dow === 6) weekendCols.add(i);
       }
 
-      // If showWeekends is false, determine which column indices to keep
-      const visibleCols = [];
-      for (let i = 0; i < 7; i++) {
-        if (this._showWeekends || !weekendCols.has(i)) {
-          visibleCols.push(i);
-        }
-      }
-      const colCount = visibleCols.length; // 5 or 7
-      const numWeeks = Math.ceil((prefill + totalDays) / colCount);
+      const headersHtml = dayNames.map((name, i) =>
+        `<div class="hcm-col-header${weekendCols.has(i) ? ' hcm-col-header--weekend' : ''}">${name}</div>`
+      ).join('');
 
-      // Column headers
-      const headersHtml = dayNames.map((name, i) => {
-        if (!visibleCols.includes(i)) return '';
-        return `<div class="hcm-col-header${weekendCols.has(i) ? ' hcm-col-header--weekend' : ''}">${name}</div>`;
-      }).join('');
-
-      // Day cells
       let cellsHtml = '';
       for (let i = 0; i < totalCells; i++) {
-        const col      = i % 7;
-        const dayNum   = i - prefill + 1;   // 1-based day of current month
+        const col       = i % 7;
+        const dayNum    = i - prefill + 1;
         const isCurrent = dayNum >= 1 && dayNum <= totalDays;
         const isWeekend = weekendCols.has(col);
 
         if (!isCurrent) {
-          // Dimmed cell for prev/next month days
-          if (!this._showWeekends && weekendCols.has(col)) continue;
-          let dimDay;
-          if (dayNum < 1) {
-            dimDay = new Date(year, month, dayNum);
-          } else {
-            dimDay = new Date(year, month + 1, dayNum - totalDays);
-          }
+          const dimDay = dayNum < 1
+            ? new Date(year, month, dayNum)
+            : new Date(year, month + 1, dayNum - totalDays);
           cellsHtml += `<div class="hcm-day hcm-day--outside"><span class="hcm-day-num">${dimDay.getDate()}</span></div>`;
           continue;
         }
 
-        // Skip weekend cells when showWeekends is false
-        if (!this._showWeekends && isWeekend) {
-          continue;
-        }
-
-        const isoDate    = toISODate(new Date(year, month, dayNum));
-        const status     = this._statusMap.get(isoDate) || '';
-        const rawHex     = status ? (colors[status] || '#556b82') : null;
-        const accentHex  = rawHex && isSafeHex(rawHex) ? rawHex : (status ? '#556b82' : null);
-        const bgStyle    = accentHex ? `background:${hexToRgba(accentHex, 0.12)};` : '';
-        const isToday    = isoDate === today;
+        const isoDate   = toISODate(new Date(year, month, dayNum));
+        const status    = this._statusMap.get(isoDate) || '';
+        const rawHex    = status ? (colors[status] || '#556b82') : null;
+        const accentHex = rawHex && isSafeHex(rawHex) ? rawHex : (status ? '#556b82' : null);
+        const bgStyle   = accentHex ? `background:${hexToRgba(accentHex, 0.12)};` : '';
+        const isToday   = isoDate === today;
 
         let classes = 'hcm-day';
         if (isWeekend) classes += ' hcm-day--weekend';
@@ -322,9 +200,7 @@
 
         const numStyle = isToday
           ? 'color:var(--sap-brand);font-weight:700;'
-          : isWeekend
-            ? 'color:var(--sap-negative);'
-            : '';
+          : isWeekend ? 'color:var(--sap-negative);' : '';
 
         const labelHtml = status
           ? `<div class="hcm-status-label" style="color:${esc(accentHex)}">${esc(status)}</div>`
@@ -336,18 +212,16 @@
         </div>`;
       }
 
-      // Legend — all configured statuses
       const legendHtml = Object.entries(colors).map(([name, hex]) => {
         const safeHex = isSafeHex(hex) ? hex : '#556b82';
         return `<div class="hcm-legend-item">
-          <span class="hcm-legend-swatch" style="background:${hexToRgba(safeHex, 0.15)};border-color:${safeHex};"></span>
+          <span class="hcm-legend-swatch" style="background:${hexToRgba(safeHex,0.15)};border-color:${safeHex};"></span>
           <span class="hcm-legend-label" style="color:${safeHex};">${esc(name)}</span>
         </div>`;
       }).join('');
 
       const employeeHtml = this._employeeName
-        ? `<span class="hcm-employee">${esc(this._employeeName)}</span>`
-        : '';
+        ? `<span class="hcm-employee">${esc(this._employeeName)}</span>` : '';
 
       this._shadowRoot.innerHTML = `
         <link rel="stylesheet" href="${cssUrl}">
@@ -361,8 +235,8 @@
             <button class="hcm-nav-btn" id="btn-next">&#8250;</button>
           </div>
           <div class="hcm-grid-wrap">
-            <div class="hcm-col-headers" style="grid-template-columns:repeat(${colCount},1fr)">${headersHtml}</div>
-            <div class="hcm-grid" style="grid-template-columns:repeat(${colCount},1fr);grid-template-rows:repeat(${numWeeks},1fr)">${cellsHtml}</div>
+            <div class="hcm-col-headers" style="grid-template-columns:repeat(7,1fr)">${headersHtml}</div>
+            <div class="hcm-grid" style="grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(${numWeeks},1fr)">${cellsHtml}</div>
           </div>
           <div class="hcm-legend">${legendHtml}</div>
         </div>
@@ -396,11 +270,7 @@
               const url = this._navigationUrl
                 .replace('{date}',   encodeURIComponent(date))
                 .replace('{status}', encodeURIComponent(status));
-              if (this._openInNewTab) {
-                window.open(url, '_blank');
-              } else {
-                window.location.href = url;
-              }
+              this._openInNewTab ? window.open(url, '_blank') : (window.location.href = url);
             }
           });
         }
