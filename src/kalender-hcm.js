@@ -96,7 +96,7 @@
         this._currentDate = parseISODateLocal(this.currentDate);
       }
       if ('colorScheme' in changedProperties) {
-        this._colorScheme = this.colorScheme || {};
+        try { this._colorScheme = JSON.parse(this.colorScheme || '{}'); } catch (e) { this._colorScheme = {}; }
       }
       if ('showWeekends' in changedProperties) {
         this._showWeekends = this.showWeekends !== false;

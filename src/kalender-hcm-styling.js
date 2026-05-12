@@ -35,10 +35,10 @@
     }
 
     _render() {
-      // If no colorScheme set yet, show presets as starting point
-      const colorScheme  = (this.colorScheme && Object.keys(this.colorScheme).length > 0)
-        ? this.colorScheme
-        : { ...PRESET_COLORS };
+      // colorScheme is stored as JSON string in SAC
+      let parsed = {};
+      try { parsed = JSON.parse(this.colorScheme || '{}'); } catch (e) {}
+      const colorScheme = Object.keys(parsed).length > 0 ? parsed : { ...PRESET_COLORS };
       const showWeekends = this.showWeekends !== false;
       const firstDay     = this.firstDayOfWeek !== undefined ? parseInt(this.firstDayOfWeek, 10) : 1;
 
@@ -249,9 +249,10 @@
     }
 
     _dispatchColors(newScheme) {
-      this.colorScheme = newScheme;
+      const serialized = JSON.stringify(newScheme);
+      this.colorScheme = serialized;
       this.dispatchEvent(new CustomEvent('propertiesChanged', {
-        detail: { properties: { colorScheme: newScheme } }
+        detail: { properties: { colorScheme: serialized } }
       }));
       this._render();
     }

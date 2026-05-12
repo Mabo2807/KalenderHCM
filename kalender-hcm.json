@@ -11,7 +11,7 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
-      "integrity": "sha384-m5ZrLcF6yOkFPeeaU3vBHwMkhPWVqPa1bC9XeuA6AhonoWnNULge6WTUqLlyeMrL",
+      "integrity": "sha384-aG4gIvoejDBYc2kf6pPr/tdRNyCsY8DNjVlwQrsk49FIJicNeP67hBznbLKsLFni",
       "ignoreIntegrity": true
     },
     {
@@ -25,7 +25,7 @@
       "kind": "styling",
       "tag": "com-custom-kalenderhcm-styling",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-styling.js",
-      "integrity": "sha384-NAcK56yrODLTJis8u+aPvYnSeyueg6+XzA6eCqgeBS2z0cTks4gYHQXV/dlfddM1",
+      "integrity": "sha384-rSBlATWWg63x9CAVXhC68LHqqdvnsDZGeEArqjxbc1Aw2Q3ppsAp1/ddD9sgk++w",
       "ignoreIntegrity": true
     }
   ],
@@ -36,9 +36,9 @@
       "default": ""
     },
     "colorScheme": {
-      "type": "object",
-      "description": "Status-Name → Akzentfarbe als { \"Krank\": \"#e76500\" }",
-      "default": {}
+      "type": "string",
+      "description": "Status-Name → Akzentfarbe als JSON-String z.B. {\"Krank\":\"#e76500\"}",
+      "default": "{}"
     },
     "showWeekends": {
       "type": "boolean",
