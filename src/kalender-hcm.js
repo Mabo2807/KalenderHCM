@@ -149,39 +149,35 @@
 
       try {
         const feeds = db.metadata && db.metadata.feeds;
-        console.log('KalenderHCM feeds:', JSON.stringify(feeds, null, 2));
-        console.log('KalenderHCM erste Datenzeile:', JSON.stringify(db.data[0], null, 2));
 
-        // Feed-ID ermitteln: SAC legt die tatsächliche Dimensions-ID ab
-        const dateFeed     = feeds && feeds.dateColumn     && feeds.dateColumn.values     && feeds.dateColumn.values[0]     && feeds.dateColumn.values[0].id;
-        const statusFeed   = feeds && feeds.statusColumn   && feeds.statusColumn.values   && feeds.statusColumn.values[0]   && feeds.statusColumn.values[0].id;
+        // Feed-IDs aus SAC-Metadata lesen
+        const dateFeed     = feeds && feeds.dateColumn     && feeds.dateColumn.values     && feeds.dateColumn.values[0] && feeds.dateColumn.values[0].id;
+        const statusFeed   = feeds && feeds.statusColumn   && feeds.statusColumn.values   && feeds.statusColumn.values[0] && feeds.statusColumn.values[0].id;
         const employeeFeed = feeds && feeds.employeeColumn && feeds.employeeColumn.values && feeds.employeeColumn.values[0] && feeds.employeeColumn.values[0].id;
 
         console.log('KalenderHCM Feed-IDs:', { dateFeed, statusFeed, employeeFeed });
+        console.log('KalenderHCM erste Zeile:', JSON.stringify(rows[0]));
 
-        if (!dateFeed || !statusFeed) {
-          console.warn('KalenderHCM: Datum- oder Status-Feed nicht verbunden.');
+        if (!dateFeed) {
+          console.warn('KalenderHCM: Datum-Feed nicht verbunden.');
           return;
         }
 
         for (const row of rows) {
-          // SAC kann Werte als String ODER als Objekt {id, label} liefern
-          const rawDate   = row[dateFeed];
-          const rawStatus = row[statusFeed];
+          // Wert auslesen: SAC liefert entweder String oder Objekt {id, label}
+          const rawVal = (key) => {
+            const v = row[key];
+            if (!v) return '';
+            return typeof v === 'object' ? (v.label || v.id || '') : String(v);
+          };
 
-          const dateStr   = rawDate   && typeof rawDate   === 'object' ? (rawDate.id   || rawDate.label || '') : String(rawDate   || '');
-          const statusStr = rawStatus && typeof rawStatus === 'object' ? (rawStatus.id || rawStatus.label || '') : String(rawStatus || '');
-
-          // Datum normalisieren: YYYYMMDD → YYYY-MM-DD
-          const date = normalizeDateStr(dateStr);
-          const status = statusStr.trim();
+          const date   = normalizeDateStr(rawVal(dateFeed));
+          const status = statusFeed ? rawVal(statusFeed).trim() : '';
 
           if (date && status) this._statusMap.set(date, status);
 
           if (employeeFeed && !this._employeeName) {
-            const rawEmp = row[employeeFeed];
-            const empStr = rawEmp && typeof rawEmp === 'object' ? (rawEmp.label || rawEmp.id || '') : String(rawEmp || '');
-            this._employeeName = empStr.trim();
+            this._employeeName = rawVal(employeeFeed).trim();
           }
         }
 
