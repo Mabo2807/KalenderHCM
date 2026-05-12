@@ -1,6 +1,6 @@
 {
   "id": "com.custom.kalenderhcm",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben für SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -10,7 +10,7 @@
     {
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
-      "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
+      "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js?v=113",
       "integrity": "sha384-UKvlfCYxE7QpLlIyH8+vGlShZ9OsRLs1pEyPkJZWU7itzjycdUov99Cd4s6x2Rr3",
       "ignoreIntegrity": true
     },
