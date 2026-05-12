@@ -112,11 +112,13 @@
       if ('openInNewTab' in changedProperties) {
         this._openInNewTab = this.openInNewTab !== false;
       }
-      if ('dataBinding' in changedProperties ||
-          'dateColumnId' in changedProperties ||
-          'statusColumnId' in changedProperties ||
-          'employeeColumnId' in changedProperties) {
-        this._processDataBinding();
+      if ('dataJson' in changedProperties && this.dataJson) {
+        this._processDataJson();
+      } else if ('dataBinding' in changedProperties ||
+                 'dateColumnId' in changedProperties ||
+                 'statusColumnId' in changedProperties ||
+                 'employeeColumnId' in changedProperties) {
+        if (!this.dataJson) this._processDataBinding();
       }
       this._render();
     }
@@ -146,6 +148,29 @@
     refresh() {
       this._processDataBinding();
       this._render();
+    }
+
+    // -------------------------------------------------------------------------
+    // JSON Data Input (for SAC Stories where dataBinding UI is unavailable)
+    // -------------------------------------------------------------------------
+
+    _processDataJson() {
+      this._statusMap = new Map();
+      this._employeeName = '';
+      try {
+        const arr = JSON.parse(this.dataJson || '[]');
+        if (!Array.isArray(arr)) return;
+        for (const row of arr) {
+          const date   = String(row.date   || row.Datum    || '').substring(0, 10);
+          const status = String(row.status || row.Status   || '');
+          if (date && status) this._statusMap.set(date, status);
+          if (!this._employeeName) {
+            this._employeeName = String(row.employee || row.Mitarbeiter || '');
+          }
+        }
+      } catch (e) {
+        console.error('KalenderHCM: Fehler beim Parsen von dataJson:', e);
+      }
     }
 
     // -------------------------------------------------------------------------

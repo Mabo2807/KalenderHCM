@@ -1,6 +1,6 @@
 {
   "id": "com.custom.kalenderhcm",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben für SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -11,14 +11,14 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
-      "integrity": "sha384-CdLD8chMjq+nMwd3klDMflzvw6qdz4nECV15On9FrfBTSyvdfJ8HPxVD3KdzzRkj",
+      "integrity": "sha384-K71YEKjBIiUHuamDpJOkX+HGMvr0rb0zKBEl3tfj/vjT/KwvAczHfXF7l3vocyDe",
       "ignoreIntegrity": true
     },
     {
       "kind": "builder",
       "tag": "com-custom-kalenderhcm-builder",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
-      "integrity": "sha384-ve7YLMjllEio3Aou7e2Cd2cqvOGdFYRsJc1DpvCC72ZCtkK5gi0/+OE8VUndx1kh",
+      "integrity": "sha384-1i9pqSxVlnJDPafIM7SJEA06Bz8jKih0zjQvKHl0uFDTVqw2r011q+S8bV33to4V",
       "ignoreIntegrity": true
     },
     {
@@ -74,6 +74,11 @@
       "type": "boolean",
       "description": "Navigation-URL in neuem Tab öffnen",
       "default": true
+    },
+    "dataJson": {
+      "type": "string",
+      "description": "Anwesenheitsdaten als JSON-Array [{date,status,employee}] — für SAC Story",
+      "default": ""
     }
   },
   "methods": {
@@ -97,7 +102,7 @@
     }
   },
   "dataBindings": {
-    "attendanceData": {
+    "dataBinding": {
       "feeds": [
         {
           "id": "dateColumn",

@@ -73,6 +73,7 @@
       const employeeColId = this.employeeColumnId || '';
       const navUrl        = this.navigationUrl    || '';
       const openInNewTab  = this.openInNewTab !== false;
+      const dataJson      = this.dataJson         || '';
 
       const cols = this._getAvailableColumns();
       const noDataHint = cols === null
@@ -157,6 +158,29 @@
           input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--brand); flex-shrink: 0; }
           input[type="text"] { padding: 6px 8px; }
           hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+          textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #131e29;
+            background: #fff;
+            resize: vertical;
+          }
+          textarea:focus {
+            outline: none;
+            border-color: var(--brand);
+            box-shadow: 0 0 0 2px rgba(0,112,242,0.15);
+          }
+          code {
+            background: #eef0f2;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 10px;
+          }
         </style>
 
         <div class="section">
@@ -209,6 +233,20 @@
             <option value="0" ${firstDay === 0 ? 'selected' : ''}>Sonntag</option>
           </select>
         </div>
+
+        <hr>
+
+        <div class="section">
+          <div class="section-title">Daten (SAC Story)</div>
+          <div class="info-box">
+            In SAC Stories kein Data-Binding-Panel verf&uuml;gbar.<br>
+            Daten als JSON-Array hier einf&uuml;gen:<br>
+            <code>[{"date":"2026-04-01","status":"Anwesend","employee":"Max"}]</code>
+          </div>
+          <label>JSON-Daten</label>
+          <textarea id="data-json" rows="6" placeholder='[{"date":"2026-04-01","status":"Anwesend","employee":"Max Mustermann"},...]'>${esc(dataJson)}</textarea>
+          <div class="hint">Per Script: <code>widget.dataJson = JSON.stringify(rows)</code></div>
+        </div>
       `;
 
       this._attachListeners();
@@ -244,6 +282,9 @@
       });
       root.getElementById('first-day')?.addEventListener('change', (e) => {
         dispatch({ firstDayOfWeek: parseInt(e.target.value, 10) });
+      });
+      root.getElementById('data-json')?.addEventListener('change', (e) => {
+        dispatch({ dataJson: e.target.value.trim() });
       });
     }
   }
