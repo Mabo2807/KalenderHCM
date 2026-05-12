@@ -83,6 +83,8 @@
       this._showWeekends = true;
       this._firstDayOfWeek = 1;
       this._employeeName = '';
+      this._navigationUrl = '';
+      this._openInNewTab = true;
     }
 
     // -------------------------------------------------------------------------
@@ -103,6 +105,12 @@
       }
       if ('firstDayOfWeek' in changedProperties) {
         this._firstDayOfWeek = this.firstDayOfWeek !== undefined ? this.firstDayOfWeek : 1;
+      }
+      if ('navigationUrl' in changedProperties) {
+        this._navigationUrl = this.navigationUrl || '';
+      }
+      if ('openInNewTab' in changedProperties) {
+        this._openInNewTab = this.openInNewTab !== false;
       }
       if ('dataBinding' in changedProperties ||
           'dateColumnId' in changedProperties ||
@@ -242,6 +250,7 @@
         }
       }
       const colCount = visibleCols.length; // 5 or 7
+      const numWeeks = Math.ceil((prefill + totalDays) / colCount);
 
       // Column headers
       const headersHtml = dayNames.map((name, i) => {
@@ -328,7 +337,7 @@
           </div>
           <div class="hcm-grid-wrap">
             <div class="hcm-col-headers" style="grid-template-columns:repeat(${colCount},1fr)">${headersHtml}</div>
-            <div class="hcm-grid" style="grid-template-columns:repeat(${colCount},1fr)">${cellsHtml}</div>
+            <div class="hcm-grid" style="grid-template-columns:repeat(${colCount},1fr);grid-template-rows:repeat(${numWeeks},1fr)">${cellsHtml}</div>
           </div>
           <div class="hcm-legend">${legendHtml}</div>
         </div>
@@ -355,10 +364,19 @@
       root.querySelectorAll('.hcm-day[data-date]').forEach(cell => {
         if (!cell.classList.contains('hcm-day--outside')) {
           cell.addEventListener('click', () => {
-            this._fireEvent('onDayClick', {
-              date:   cell.dataset.date,
-              status: cell.dataset.status,
-            });
+            const date   = cell.dataset.date;
+            const status = cell.dataset.status;
+            this._fireEvent('onDayClick', { date, status });
+            if (this._navigationUrl) {
+              const url = this._navigationUrl
+                .replace('{date}',   encodeURIComponent(date))
+                .replace('{status}', encodeURIComponent(status));
+              if (this._openInNewTab) {
+                window.open(url, '_blank');
+              } else {
+                window.location.href = url;
+              }
+            }
           });
         }
       });

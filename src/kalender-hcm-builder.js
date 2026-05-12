@@ -29,6 +29,8 @@
       const dateColId     = this.dateColumnId     || '';
       const statusColId   = this.statusColumnId   || '';
       const employeeColId = this.employeeColumnId || '';
+      const navUrl        = this.navigationUrl    || '';
+      const openInNewTab  = this.openInNewTab !== false;
 
       this._shadowRoot.innerHTML = `
         <style>
@@ -133,6 +135,23 @@
         <hr>
 
         <div class="section">
+          <div class="section-title">Navigation bei Klick</div>
+          <div class="info-box" style="background:#fff8e8;border-color:#f0c040;color:#7a5000;">
+            Optional: URL wird ge&ouml;ffnet wenn ein Tag angeklickt wird.<br>
+            Platzhalter: <strong>{date}</strong> = Datum, <strong>{status}</strong> = Status
+          </div>
+          <label>URL-Template</label>
+          <input type="text" id="nav-url" value="${esc(navUrl)}" placeholder="https://... oder leer lassen">
+          <div class="hint">Beispiel: https://meinserver.de/details?datum={date}</div>
+          <div class="checkbox-row" style="margin-top:6px">
+            <input type="checkbox" id="open-new-tab" ${openInNewTab ? 'checked' : ''}>
+            <label for="open-new-tab" style="margin:0;color:#131e29">In neuem Tab &ouml;ffnen</label>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="section">
           <div class="section-title">Optionen</div>
 
           <div class="checkbox-row">
@@ -172,6 +191,14 @@
 
       root.getElementById('employee-col-id')?.addEventListener('change', (e) => {
         dispatch({ employeeColumnId: e.target.value.trim() });
+      });
+
+      root.getElementById('nav-url')?.addEventListener('change', (e) => {
+        dispatch({ navigationUrl: e.target.value.trim() });
+      });
+
+      root.getElementById('open-new-tab')?.addEventListener('change', (e) => {
+        dispatch({ openInNewTab: e.target.checked });
       });
 
       root.getElementById('show-weekends')?.addEventListener('change', (e) => {

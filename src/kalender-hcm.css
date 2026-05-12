@@ -86,7 +86,7 @@
   flex-direction: column;
   padding: 8px;
   background: var(--sap-bg);
-  overflow: auto;
+  overflow: hidden;
   min-height: 0;
 }
 
@@ -96,6 +96,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .hcm-col-header {
@@ -103,30 +104,33 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--sap-text-secondary);
-  padding: 4px 2px;
+  padding: 2px;
   user-select: none;
 }
 .hcm-col-header--weekend { color: var(--sap-negative); }
 
-/* Day grid */
+/* Day grid — rows set dynamically via style attribute */
 .hcm-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Day cell */
 .hcm-day {
   background: var(--sap-tile-bg);
   border-radius: 6px;
-  padding: 6px 4px;
-  min-height: 52px;
+  padding: 4px 2px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
   transition: box-shadow 0.1s;
   user-select: none;
+  overflow: hidden;
 }
 .hcm-day:hover:not(.hcm-day--outside):not(.hcm-day--today) {
   box-shadow: 0 0 0 2px var(--sap-brand);
@@ -153,12 +157,13 @@
 }
 
 .hcm-status-label {
-  font-size: 10px;
-  margin-top: 3px;
+  font-size: clamp(7px, 1.2cqw, 10px);
+  margin-top: 2px;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.1;
   word-break: break-word;
   max-width: 100%;
+  overflow: hidden;
 }
 
 /* Legend */

@@ -1,6 +1,6 @@
 {
   "id": "com.custom.kalenderhcm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben für SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -11,14 +11,14 @@
       "kind": "main",
       "tag": "com-custom-kalenderhcm",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm.js",
-      "integrity": "sha384-nJLmQT/imCEZcDJ6X5drAkPAxIaCs8HOyHcclHZCYNVpWtSTxvrF8Bk0rbODjT3G",
+      "integrity": "sha384-CdLD8chMjq+nMwd3klDMflzvw6qdz4nECV15On9FrfBTSyvdfJ8HPxVD3KdzzRkj",
       "ignoreIntegrity": true
     },
     {
       "kind": "builder",
       "tag": "com-custom-kalenderhcm-builder",
       "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-builder.js",
-      "integrity": "sha384-e/8mOlhfk9KUDYDthIkA80fydvKKUkVLoyBS8c4PsKWpjJoEXFywdxhXG7xpg4n8",
+      "integrity": "sha384-hwGpSjXh6AGbjg5fl6NbntCBPF+rBboonxox59r/cM8fKXibA34lgARjDG71KbxI",
       "ignoreIntegrity": true
     },
     {
@@ -64,6 +64,16 @@
       "type": "integer",
       "description": "Erster Wochentag: 0 = Sonntag, 1 = Montag",
       "default": 1
+    },
+    "navigationUrl": {
+      "type": "string",
+      "description": "URL-Template bei Tag-Klick. Platzhalter: {date}, {status}",
+      "default": ""
+    },
+    "openInNewTab": {
+      "type": "boolean",
+      "description": "Navigation-URL in neuem Tab öffnen",
+      "default": true
     }
   },
   "methods": {
