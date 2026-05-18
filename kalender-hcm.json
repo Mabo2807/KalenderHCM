@@ -37,6 +37,26 @@
       "default": true
     }
   },
+  "methods": {
+    "setMonth": {
+      "description": "Zu einem bestimmten Monat navigieren",
+      "parameters": [
+        {
+          "name": "isoDate",
+          "type": "string",
+          "description": "ISO-Datum-String YYYY-MM-DD"
+        }
+      ]
+    },
+    "refresh": {
+      "description": "Daten neu laden und Widget neu rendern"
+    }
+  },
+  "events": {
+    "onDayClick": {
+      "description": "Wird gefeuert wenn ein Tag angeklickt wird"
+    }
+  },
   "dataBindings": {
     "dataBinding": {
       "feeds": [
