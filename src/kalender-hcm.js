@@ -20,12 +20,12 @@
   };
 
   const DEFAULT_SCHICHT_COLORS = {
-    'Frühschicht':    '#d97706',
-    'Früh':           '#d97706',
-    'Spätschicht':    '#7c3aed',
-    'Spät':           '#7c3aed',
-    'Normalschicht':  '#0e7490',
-    'Normal':         '#0e7490',
+    'Frühschicht':    '#b45309',
+    'Früh':           '#b45309',
+    'Spätschicht':    '#6d28d9',
+    'Spät':           '#6d28d9',
+    'Normalschicht':  '#0369a1',
+    'Normal':         '#0369a1',
   };
 
   const KNOWN_SCHICHTEN = ['Frühschicht','Früh','Spätschicht','Spät','Normalschicht','Normal'];
@@ -295,11 +295,11 @@
           : isWeekend ? 'color:var(--sap-negative);' : '';
 
         const labelHtml = status
-          ? `<div class="hcm-status-label" style="color:${esc(accentHex)}">${esc(status)}</div>`
+          ? `<div class="hcm-status-label" style="color:${esc(accentHex)};background:${hexToRgba(accentHex,0.14)};">${esc(status)}</div>`
           : '';
 
         const schichtHtml = schicht
-          ? `<div class="hcm-schicht-label" style="color:${esc(accentSchichtHex)};background:${hexToRgba(accentSchichtHex, 0.18)};">${esc(schicht)}</div>`
+          ? `<div class="hcm-schicht-label" style="color:${esc(accentSchichtHex)};background:${hexToRgba(accentSchichtHex, 0.08)};">${esc(schicht)}</div>`
           : '';
 
         cellsHtml += `<div class="${classes}" style="${bgStyle}" data-date="${esc(isoDate)}" data-status="${esc(status)}">
