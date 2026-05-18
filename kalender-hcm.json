@@ -8,6 +8,7 @@
     {
       "name": "KalenderHCM",
       "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
+      "extensionPoint": "ANALYTIC_APPLICATION",
       "webcomponents": [
         {
           "kind": "main",
