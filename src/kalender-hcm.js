@@ -127,57 +127,79 @@
       this._employeeName = '';
 
       const db = this.dataBinding;
-      console.log('KalenderHCM dataBinding keys:', db ? Object.keys(db) : 'NULL');
-      console.log('KalenderHCM state:', db && db.state);
-      console.log('KalenderHCM messages:', db && db.messages);
-
       if (!db) return;
 
-      // Daten können je nach SAC-Version unter verschiedenen Pfaden liegen
       const rows = Array.isArray(db.data)      ? db.data
                  : Array.isArray(db.rows)      ? db.rows
                  : Array.isArray(db.result)    ? db.result
                  : Array.isArray(db.resultSet) ? db.resultSet
                  : null;
 
-      console.log('KalenderHCM rows gefunden:', rows ? rows.length : 'keiner');
-
-      if (!rows || rows.length === 0) {
-        console.warn('KalenderHCM: Keine Datenzeilen gefunden. State:', db.state);
-        return;
-      }
+      if (!rows || rows.length === 0) return;
 
       try {
         const feeds = db.metadata && db.metadata.feeds;
 
         // Feed-IDs aus SAC-Metadata lesen
-        const dateFeed     = feeds && feeds.dateColumn     && feeds.dateColumn.values     && feeds.dateColumn.values[0] && feeds.dateColumn.values[0].id;
-        const statusFeed   = feeds && feeds.statusColumn   && feeds.statusColumn.values   && feeds.statusColumn.values[0] && feeds.statusColumn.values[0].id;
-        const employeeFeed = feeds && feeds.employeeColumn && feeds.employeeColumn.values && feeds.employeeColumn.values[0] && feeds.employeeColumn.values[0].id;
+        let dateFeedId     = feeds?.dateColumn?.values?.[0]?.id     || null;
+        let statusFeedId   = feeds?.statusColumn?.values?.[0]?.id   || null;
+        let employeeFeedId = feeds?.employeeColumn?.values?.[0]?.id || null;
 
-        console.log('KalenderHCM Feed-IDs:', { dateFeed, statusFeed, employeeFeed });
-        console.log('KalenderHCM erste Zeile:', JSON.stringify(rows[0]));
+        // Hilfsfunktion: Wert aus einer Zeile lesen (String oder {id,label}-Objekt)
+        const rawVal = (row, key) => {
+          const v = row[key];
+          if (v === undefined || v === null) return '';
+          return typeof v === 'object' ? (v.label || v.id || '') : String(v);
+        };
 
-        if (!dateFeed) {
-          console.warn('KalenderHCM: Datum-Feed nicht verbunden.');
-          return;
+        // Fallback: Spalten automatisch anhand der Werte erkennen
+        if (!dateFeedId || !statusFeedId) {
+          const KNOWN_STATUSES = ['Anwesend','Krank','Urlaub','Feiertag','Sonstiges'];
+          const firstRow = rows[0];
+          const keys = Object.keys(firstRow);
+
+          if (!dateFeedId) {
+            for (const k of keys) {
+              if (normalizeDateStr(rawVal(firstRow, k))) { dateFeedId = k; break; }
+            }
+          }
+          if (!statusFeedId) {
+            for (const k of keys) {
+              if (k === dateFeedId) continue;
+              const v = rawVal(firstRow, k);
+              if (KNOWN_STATUSES.some(s => v.includes(s))) { statusFeedId = k; break; }
+            }
+            // Zweiter Versuch: irgendeine String-Spalte die kein Datum ist
+            if (!statusFeedId) {
+              for (const k of keys) {
+                if (k === dateFeedId) continue;
+                const v = rawVal(firstRow, k);
+                if (v && !normalizeDateStr(v) && isNaN(Number(v))) { statusFeedId = k; break; }
+              }
+            }
+          }
+          if (!employeeFeedId) {
+            for (const k of keys) {
+              if (k === dateFeedId || k === statusFeedId) continue;
+              const v = rawVal(firstRow, k);
+              if (v && isNaN(Number(v))) { employeeFeedId = k; break; }
+            }
+          }
         }
 
-        for (const row of rows) {
-          // Wert auslesen: SAC liefert entweder String oder Objekt {id, label}
-          const rawVal = (key) => {
-            const v = row[key];
-            if (!v) return '';
-            return typeof v === 'object' ? (v.label || v.id || '') : String(v);
-          };
+        console.log('KalenderHCM Feed-IDs (final):', { dateFeedId, statusFeedId, employeeFeedId });
+        console.log('KalenderHCM erste Zeile:', JSON.stringify(rows[0]));
 
-          const date   = normalizeDateStr(rawVal(dateFeed));
-          const status = statusFeed ? rawVal(statusFeed).trim() : '';
+        if (!dateFeedId) return;
+
+        for (const row of rows) {
+          const date   = normalizeDateStr(rawVal(row, dateFeedId));
+          const status = statusFeedId ? rawVal(row, statusFeedId).trim() : '';
 
           if (date && status) this._statusMap.set(date, status);
 
-          if (employeeFeed && !this._employeeName) {
-            this._employeeName = rawVal(employeeFeed).trim();
+          if (employeeFeedId && !this._employeeName) {
+            this._employeeName = rawVal(row, employeeFeedId).trim();
           }
         }
 
@@ -290,7 +312,13 @@
           const d3 = Array.isArray(db.result)     ? 'result:' + db.result.length   : '';
           const d4 = Array.isArray(db.resultSet)  ? 'resultSet:' + db.resultSet.length : '';
           const found = [d1,d2,d3,d4].filter(Boolean).join(' | ') || 'kein Array-Pfad';
-          dbDump = `keys:[${keys.join(',')}] state:${state} msgs:${msgs} | ${found}`;
+          const feeds2 = db.metadata && db.metadata.feeds;
+          const fDate = feeds2?.dateColumn?.values?.[0]?.id || 'n/a';
+          const fStat = feeds2?.statusColumn?.values?.[0]?.id || 'n/a';
+          const fEmp  = feeds2?.employeeColumn?.values?.[0]?.id || 'n/a';
+          const rows2 = Array.isArray(db.data) ? db.data : Array.isArray(db.rows) ? db.rows : null;
+          const row0  = rows2 && rows2[0] ? JSON.stringify(rows2[0]).substring(0, 300) : 'n/a';
+          dbDump = `state:${state} | ${found} | feedDate:"${fDate}" feedStatus:"${fStat}" feedEmp:"${fEmp}" | row0:${row0}`;
         } catch(e) { dbDump = 'Fehler: ' + e.message; }
       }
 
