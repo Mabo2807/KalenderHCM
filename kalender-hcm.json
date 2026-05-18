@@ -8,17 +8,13 @@
     {
       "name": "KalenderHCM",
       "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
+      "extensionPoint": "STORYTELLING",
       "webcomponents": [
         {
           "kind": "main",
           "tag": "com-custom-kalenderhcm",
           "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-widget.js",
-          "ignoreIntegrity": true
-        },
-        {
-          "kind": "styling",
-          "tag": "com-custom-kalenderhcm-styling",
-          "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-styling.js",
+          "integrity": "sha384-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "ignoreIntegrity": true
         }
       ],
