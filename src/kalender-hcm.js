@@ -12,12 +12,23 @@
   }());
 
   const DEFAULT_COLOR_SCHEME = {
-    'Anwesend': '#256f3a',
-    'Krank':    '#e76500',
-    'Urlaub':   '#0057d2',
-    'Feiertag': '#ba066c',
-    'Sonstiges':'#556b82',
+    'Anwesend':     '#256f3a',
+    'Krank':        '#e76500',
+    'Urlaub':       '#0057d2',
+    'Feiertag':     '#ba066c',
+    'Sonstiges':    '#556b82',
   };
+
+  const DEFAULT_SCHICHT_COLORS = {
+    'Frühschicht':    '#d97706',
+    'Früh':           '#d97706',
+    'Spätschicht':    '#7c3aed',
+    'Spät':           '#7c3aed',
+    'Normalschicht':  '#0e7490',
+    'Normal':         '#0e7490',
+  };
+
+  const KNOWN_SCHICHTEN = ['Frühschicht','Früh','Spätschicht','Spät','Normalschicht','Normal'];
 
   const WEEKDAYS_DE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const MONTHS_DE   = [
@@ -72,6 +83,7 @@
       this._shadowRoot    = this.attachShadow({ mode: 'open' });
       this._currentDate   = new Date();
       this._statusMap     = new Map();
+      this._schichtMap    = new Map();
       this._colorScheme   = {};
       this._employeeName  = '';
       this._navigationUrl = '';
@@ -124,6 +136,7 @@
 
     _processDataBinding() {
       this._statusMap    = new Map();
+      this._schichtMap   = new Map();
       this._employeeName = '';
 
       const db = this.dataBinding;
@@ -143,6 +156,7 @@
         // Feed-IDs aus SAC-Metadata lesen
         let dateFeedId     = feeds?.dateColumn?.values?.[0]?.id     || null;
         let statusFeedId   = feeds?.statusColumn?.values?.[0]?.id   || null;
+        let schichtFeedId  = feeds?.schichtColumn?.values?.[0]?.id  || null;
         let employeeFeedId = feeds?.employeeColumn?.values?.[0]?.id || null;
 
         // Hilfsfunktion: Wert aus einer Zeile lesen (String oder {id,label}-Objekt)
@@ -153,57 +167,51 @@
         };
 
         // Fallback: Spalten automatisch anhand der Werte erkennen
-        if (!dateFeedId || !statusFeedId) {
-          const KNOWN_STATUSES = ['Anwesend','Krank','Urlaub','Feiertag','Sonstiges'];
-          const firstRow = rows[0];
-          const keys = Object.keys(firstRow);
+        const KNOWN_STATUSES = ['Anwesend','Krank','Urlaub','Feiertag','Sonstiges'];
+        const firstRow = rows[0];
+        const keys = Object.keys(firstRow);
 
-          if (!dateFeedId) {
-            for (const k of keys) {
-              if (normalizeDateStr(rawVal(firstRow, k))) { dateFeedId = k; break; }
-            }
-          }
-          if (!statusFeedId) {
-            for (const k of keys) {
-              if (k === dateFeedId) continue;
-              const v = rawVal(firstRow, k);
-              if (KNOWN_STATUSES.some(s => v.includes(s))) { statusFeedId = k; break; }
-            }
-            // Zweiter Versuch: irgendeine String-Spalte die kein Datum ist
-            if (!statusFeedId) {
-              for (const k of keys) {
-                if (k === dateFeedId) continue;
-                const v = rawVal(firstRow, k);
-                if (v && !normalizeDateStr(v) && isNaN(Number(v))) { statusFeedId = k; break; }
-              }
-            }
-          }
-          if (!employeeFeedId) {
-            for (const k of keys) {
-              if (k === dateFeedId || k === statusFeedId) continue;
-              const v = rawVal(firstRow, k);
-              if (v && isNaN(Number(v))) { employeeFeedId = k; break; }
-            }
+        if (!dateFeedId) {
+          for (const k of keys) {
+            if (normalizeDateStr(rawVal(firstRow, k))) { dateFeedId = k; break; }
           }
         }
-
-        console.log('KalenderHCM Feed-IDs (final):', { dateFeedId, statusFeedId, employeeFeedId });
-        console.log('KalenderHCM erste Zeile:', JSON.stringify(rows[0]));
+        if (!statusFeedId) {
+          for (const k of keys) {
+            if (k === dateFeedId) continue;
+            const v = rawVal(firstRow, k);
+            if (KNOWN_STATUSES.some(s => v.includes(s))) { statusFeedId = k; break; }
+          }
+        }
+        if (!schichtFeedId) {
+          for (const k of keys) {
+            if (k === dateFeedId || k === statusFeedId) continue;
+            const v = rawVal(firstRow, k);
+            if (KNOWN_SCHICHTEN.some(s => v.includes(s))) { schichtFeedId = k; break; }
+          }
+        }
+        if (!employeeFeedId) {
+          for (const k of keys) {
+            if (k === dateFeedId || k === statusFeedId || k === schichtFeedId) continue;
+            const v = rawVal(firstRow, k);
+            if (v && isNaN(Number(v))) { employeeFeedId = k; break; }
+          }
+        }
 
         if (!dateFeedId) return;
 
         for (const row of rows) {
           const date   = normalizeDateStr(rawVal(row, dateFeedId));
-          const status = statusFeedId ? rawVal(row, statusFeedId).trim() : '';
+          const status = statusFeedId  ? rawVal(row, statusFeedId).trim()  : '';
+          const schicht= schichtFeedId ? rawVal(row, schichtFeedId).trim() : '';
 
-          if (date && status) this._statusMap.set(date, status);
+          if (date && status)  this._statusMap.set(date, status);
+          if (date && schicht) this._schichtMap.set(date, schicht);
 
           if (employeeFeedId && !this._employeeName) {
             this._employeeName = rawVal(row, employeeFeedId).trim();
           }
         }
-
-        console.log('KalenderHCM statusMap Einträge:', this._statusMap.size);
       } catch (e) {
         console.error('KalenderHCM: Fehler beim Verarbeiten der Daten:', e);
       }
@@ -211,6 +219,10 @@
 
     _effectiveColors() {
       return Object.assign({}, DEFAULT_COLOR_SCHEME, this._colorScheme);
+    }
+
+    _effectiveSchichtColors() {
+      return Object.assign({}, DEFAULT_SCHICHT_COLORS, this._colorScheme);
     }
 
     _fireEvent(eventName, payload) {
@@ -224,7 +236,8 @@
       const year    = d.getFullYear();
       const month   = d.getMonth();
       const today   = toISODate(new Date());
-      const colors  = this._effectiveColors();
+      const colors        = this._effectiveColors();
+      const schichtColors = this._effectiveSchichtColors();
       const fdow    = 1; // Montag fest
 
       const firstOfMonth = new Date(year, month, 1);
@@ -264,10 +277,14 @@
 
         const isoDate   = toISODate(new Date(year, month, dayNum));
         const status    = this._statusMap.get(isoDate) || '';
+        const schicht   = this._schichtMap.get(isoDate) || '';
         const rawHex    = status ? (colors[status] || '#556b82') : null;
         const accentHex = rawHex && isSafeHex(rawHex) ? rawHex : (status ? '#556b82' : null);
         const bgStyle   = accentHex ? `background:${hexToRgba(accentHex, 0.12)};` : '';
         const isToday   = isoDate === today;
+
+        const rawSchichtHex  = schicht ? (schichtColors[schicht] || '#0e7490') : null;
+        const accentSchichtHex = rawSchichtHex && isSafeHex(rawSchichtHex) ? rawSchichtHex : (schicht ? '#0e7490' : null);
 
         let classes = 'hcm-day';
         if (isWeekend) classes += ' hcm-day--weekend';
@@ -281,19 +298,38 @@
           ? `<div class="hcm-status-label" style="color:${esc(accentHex)}">${esc(status)}</div>`
           : '';
 
+        const schichtHtml = schicht
+          ? `<div class="hcm-schicht-label" style="color:${esc(accentSchichtHex)};background:${hexToRgba(accentSchichtHex, 0.18)};">${esc(schicht)}</div>`
+          : '';
+
         cellsHtml += `<div class="${classes}" style="${bgStyle}" data-date="${esc(isoDate)}" data-status="${esc(status)}">
           <span class="hcm-day-num" style="${numStyle}">${dayNum}</span>
           ${labelHtml}
+          ${schichtHtml}
         </div>`;
       }
 
-      const legendHtml = Object.entries(colors).map(([name, hex]) => {
-        const safeHex = isSafeHex(hex) ? hex : '#556b82';
+      const statusLegendHtml = Object.entries(DEFAULT_COLOR_SCHEME).map(([name, hex]) => {
+        const h = isSafeHex(colors[name] || hex) ? (colors[name] || hex) : '#556b82';
         return `<div class="hcm-legend-item">
-          <span class="hcm-legend-swatch" style="background:${hexToRgba(safeHex,0.15)};border-color:${safeHex};"></span>
-          <span class="hcm-legend-label" style="color:${safeHex};">${esc(name)}</span>
+          <span class="hcm-legend-swatch" style="background:${hexToRgba(h,0.15)};border-color:${h};"></span>
+          <span class="hcm-legend-label" style="color:${h};">${esc(name)}</span>
         </div>`;
       }).join('');
+
+      const schichtLegendHtml = Object.entries(DEFAULT_SCHICHT_COLORS)
+        .filter(([name]) => !['Früh','Spät','Normal'].includes(name)) // nur Langformen anzeigen
+        .map(([name, hex]) => {
+          const h = isSafeHex(schichtColors[name] || hex) ? (schichtColors[name] || hex) : '#0e7490';
+          return `<div class="hcm-legend-item">
+            <span class="hcm-legend-swatch" style="background:${hexToRgba(h,0.18)};border-color:${h};border-radius:2px;"></span>
+            <span class="hcm-legend-label" style="color:${h};font-weight:600;">${esc(name)}</span>
+          </div>`;
+        }).join('');
+
+      const legendHtml = `${statusLegendHtml}
+        <div style="width:100%;height:0;border-top:1px solid var(--sap-border);margin:2px 0;flex-basis:100%;"></div>
+        ${schichtLegendHtml}`;
 
       const employeeHtml = this._employeeName
         ? `<span class="hcm-employee">${esc(this._employeeName)}</span>` : '';

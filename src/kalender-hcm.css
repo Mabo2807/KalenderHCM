@@ -166,6 +166,20 @@
   overflow: hidden;
 }
 
+.hcm-schicht-label {
+  font-size: clamp(6px, 1.1cqw, 9px);
+  margin-top: 3px;
+  text-align: center;
+  line-height: 1.2;
+  padding: 1px 5px;
+  border-radius: 3px;
+  max-width: 100%;
+  width: 90%;
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
 /* Legend */
 .hcm-legend {
   display: flex;
