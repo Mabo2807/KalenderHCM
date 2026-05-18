@@ -2,70 +2,74 @@
   "id": "com.custom.kalenderhcm",
   "version": "1.2.3",
   "name": "KalenderHCM",
-  "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben fuer SAP Analytics Cloud",
-  "newInstancePrefix": "KalenderHCM",
+  "description": "HCM-Anwesenheitskalender",
   "vendor": "",
-  "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
-  "webcomponents": [
+  "extensions": [
     {
-      "kind": "main",
-      "tag": "com-custom-kalenderhcm",
-      "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-widget.js",
-      "integrity": "sha384-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "ignoreIntegrity": true
-    }
-  ],
-  "properties": {
-    "currentDate": {
-      "type": "string",
-      "description": "Angezeigter Monat als ISO-Datum (YYYY-MM-DD)",
-      "default": ""
-    },
-    "colorScheme": {
-      "type": "string",
-      "description": "Status-Name als JSON-String z.B. {\"Krank\":\"#e76500\"}",
-      "default": "{}"
-    },
-    "navigationUrl": {
-      "type": "string",
-      "description": "URL-Template bei Tag-Klick. Platzhalter: {date}, {status}",
-      "default": ""
-    },
-    "openInNewTab": {
-      "type": "boolean",
-      "description": "Navigation-URL in neuem Tab oeffnen",
-      "default": true
-    }
-  },
-  "dataBindings": {
-    "dataBinding": {
-      "feeds": [
+      "name": "KalenderHCM",
+      "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
+      "webcomponents": [
         {
-          "id": "dateColumn",
-          "description": "Datum-Dimension (YYYY-MM-DD)",
-          "type": "dimension"
-        },
-        {
-          "id": "statusColumn",
-          "description": "Statuswert (z.B. Krank, Urlaub, Anwesend)",
-          "type": "dimension"
-        },
-        {
-          "id": "employeeColumn",
-          "description": "Mitarbeitername (optional, fuer Header-Anzeige)",
-          "type": "dimension"
-        },
-        {
-          "id": "schichtColumn",
-          "description": "Schicht (z.B. Fruehschicht, Spaetschicht, Normalschicht)",
-          "type": "dimension"
-        },
-        {
-          "id": "measure",
-          "description": "Beliebige Kennzahl (z.B. Anzahl / #Records)",
-          "type": "mainStructureMember"
+          "kind": "main",
+          "tag": "com-custom-kalenderhcm",
+          "url": "https://Mabo2807.github.io/KalenderHCM/src/kalender-hcm-widget.js",
+          "integrity": "sha384-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "ignoreIntegrity": true
         }
-      ]
+      ],
+      "properties": {
+        "currentDate": {
+          "type": "string",
+          "description": "Angezeigter Monat als ISO-Datum (YYYY-MM-DD)",
+          "default": ""
+        },
+        "colorScheme": {
+          "type": "string",
+          "description": "Status-Name als JSON-String",
+          "default": "{}"
+        },
+        "navigationUrl": {
+          "type": "string",
+          "description": "URL-Template bei Tag-Klick",
+          "default": ""
+        },
+        "openInNewTab": {
+          "type": "boolean",
+          "description": "Navigation-URL in neuem Tab oeffnen",
+          "default": true
+        }
+      },
+      "dataBindings": {
+        "dataBinding": {
+          "feeds": [
+            {
+              "id": "dateColumn",
+              "description": "Datum-Dimension (YYYY-MM-DD)",
+              "type": "dimension"
+            },
+            {
+              "id": "statusColumn",
+              "description": "Statuswert (z.B. Krank, Urlaub, Anwesend)",
+              "type": "dimension"
+            },
+            {
+              "id": "employeeColumn",
+              "description": "Mitarbeitername",
+              "type": "dimension"
+            },
+            {
+              "id": "schichtColumn",
+              "description": "Schicht",
+              "type": "dimension"
+            },
+            {
+              "id": "measure",
+              "description": "Kennzahl",
+              "type": "mainStructureMember"
+            }
+          ]
+        }
+      }
     }
-  }
+  ]
 }
