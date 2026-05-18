@@ -8,7 +8,7 @@
     {
       "name": "KalenderHCM",
       "icon": "https://Mabo2807.github.io/KalenderHCM/icon.png",
-      "extensionPoint": "STORYTELLING",
+      "extensionPoint": "STORY",
       "webcomponents": [
         {
           "kind": "main",
