@@ -298,36 +298,8 @@
       const employeeHtml = this._employeeName
         ? `<span class="hcm-employee">${esc(this._employeeName)}</span>` : '';
 
-      // Debug-Info zusammenstellen
-      const db = this.dataBinding;
-      let dbDump = 'NULL';
-      if (db) {
-        try {
-          const keys = Object.keys(db);
-          const state = db.state !== undefined ? JSON.stringify(db.state) : 'n/a';
-          const msgs  = db.messages ? JSON.stringify(db.messages).substring(0, 150) : 'none';
-          // Alle möglichen Datenpfade prüfen
-          const d1 = Array.isArray(db.data)       ? 'data:' + db.data.length       : '';
-          const d2 = Array.isArray(db.rows)       ? 'rows:' + db.rows.length       : '';
-          const d3 = Array.isArray(db.result)     ? 'result:' + db.result.length   : '';
-          const d4 = Array.isArray(db.resultSet)  ? 'resultSet:' + db.resultSet.length : '';
-          const found = [d1,d2,d3,d4].filter(Boolean).join(' | ') || 'kein Array-Pfad';
-          const feeds2 = db.metadata && db.metadata.feeds;
-          const fDate = feeds2?.dateColumn?.values?.[0]?.id || 'n/a';
-          const fStat = feeds2?.statusColumn?.values?.[0]?.id || 'n/a';
-          const fEmp  = feeds2?.employeeColumn?.values?.[0]?.id || 'n/a';
-          const rows2 = Array.isArray(db.data) ? db.data : Array.isArray(db.rows) ? db.rows : null;
-          const row0  = rows2 && rows2[0] ? JSON.stringify(rows2[0]).substring(0, 300) : 'n/a';
-          dbDump = `state:${state} | ${found} | feedDate:"${fDate}" feedStatus:"${fStat}" feedEmp:"${fEmp}" | row0:${row0}`;
-        } catch(e) { dbDump = 'Fehler: ' + e.message; }
-      }
-
       this._shadowRoot.innerHTML = `
         <link rel="stylesheet" href="${cssUrl}">
-        <div style="background:#fff3cd;border:1px solid #ffc107;padding:6px 8px;font-size:10px;font-family:monospace;word-break:break-all;margin-bottom:4px;border-radius:4px;">
-          🔍 DB: ${dbDump}<br>
-          statusMap: ${this._statusMap.size} Einträge
-        </div>
         <div class="hcm-root">
           <div class="hcm-toolbar">
             <button class="hcm-nav-btn" id="btn-prev">&#8249;</button>
