@@ -20,15 +20,15 @@
   };
 
   const DEFAULT_SCHICHT_COLORS = {
-    'Frühschicht':    '#b45309',
-    'Früh':           '#b45309',
-    'Spätschicht':    '#6d28d9',
-    'Spät':           '#6d28d9',
+    'Fruehschicht':   '#b45309',
+    'Frueh':          '#b45309',
+    'Spaetschicht':   '#6d28d9',
+    'Spaet':          '#6d28d9',
     'Normalschicht':  '#0369a1',
     'Normal':         '#0369a1',
   };
 
-  const KNOWN_SCHICHTEN = ['Frühschicht','Früh','Spätschicht','Spät','Normalschicht','Normal'];
+  const KNOWN_SCHICHTEN = ['Fruehschicht','Frueh','Spaetschicht','Spaet','Normalschicht','Normal'];
 
   const WEEKDAYS_DE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const MONTHS_DE   = [
@@ -318,7 +318,7 @@
       }).join('');
 
       const schichtLegendHtml = Object.entries(DEFAULT_SCHICHT_COLORS)
-        .filter(([name]) => !['Früh','Spät','Normal'].includes(name)) // nur Langformen anzeigen
+        .filter(([name]) => !['Frueh','Spaet','Normal'].includes(name)) // nur Langformen anzeigen
         .map(([name, hex]) => {
           const h = isSafeHex(schichtColors[name] || hex) ? (schichtColors[name] || hex) : '#0e7490';
           return `<div class="hcm-legend-item">
