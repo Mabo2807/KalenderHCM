@@ -549,7 +549,6 @@
           this._selectedDate ? [this._selectedDate.replace(/-/g,'')] : []);
         this._hidePopup();
         this._render();
-        this._fireEvent('onDayClick', { date, status, selected: !isDeselect });
         this._fireFilterChange();
         if (!isDeselect && this._navigationUrl) {
           const url = this._navigationUrl
@@ -582,11 +581,16 @@
       document.querySelectorAll('.hcm-popup[data-popup]').forEach(p => p.remove());
     }
 
-    /** Zentrales Filter-Event — wird nach jeder Selektion gefeuert.
-     *  Schreibt Zustand in window.__hcmFilter (lesbar vom SAC Story Script).
-     *  Feuert dann onFilterChange als Trigger für das Script. */
+    /** Zentrales Filter-Event — feuert onDayClick (bestätigt funktionierend in SAC)
+     *  UND onFilterChange für zukünftige Nutzung. */
     _fireFilterChange() {
-      // SAC Analytics Designer erwartet Strings als Event-Parameter (keine Arrays/Objekte)
+      // onDayClick ist bestätigt in SAC Analytics Designer — damit Script auslösen
+      this._fireEvent('onDayClick', {
+        date:    this._selectedDate || '',
+        status:  '',
+        selected: !!this._selectedDate,
+      });
+      // onFilterChange zusätzlich (für neue Widget-Instanzen)
       this._fireEvent('onFilterChange', {
         date:              this._selectedDate || '',
         selectedStatuses:  JSON.stringify([...this._selectedStatuses]),
