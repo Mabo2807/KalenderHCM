@@ -138,6 +138,15 @@
       this._render();
     }
 
+    /** Gibt aktuellen Filterzustand als JSON-String zurück — für SAC Story Script. */
+    getCurrentFilter() {
+      return JSON.stringify({
+        date:              this._selectedDate || '',
+        selectedStatuses:  [...this._selectedStatuses],
+        selectedSchichten: [...this._selectedSchichten],
+      });
+    }
+
     /** Alle Selektionen (Tag + Legende) zurücksetzen. */
     clearSelection() {
       this._selectedDate      = null;
