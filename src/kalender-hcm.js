@@ -174,83 +174,60 @@
       } catch(e) { console.log('HCM dump', label, 'error:', e.message); }
     }
 
+    /** Liefert das echte DataBinding-Objekt (mit getDataSource/getLinkedAnalysis). */
+    _getBinding() {
+      const mgr = this.dataBindings;
+      if (mgr && typeof mgr.getDataBinding === 'function') {
+        try { return mgr.getDataBinding('dataBinding'); } catch (e) {}
+      }
+      return null;
+    }
+
+    /** Feed-ID (z.B. "dateColumn") → echte Dimension-ID aus Metadata. */
+    _resolveDimensionId(feedId) {
+      const db    = this.dataBinding;
+      const feeds = db && db.metadata && db.metadata.feeds;
+      const vals  = feeds && feeds[feedId] && feeds[feedId].values;
+      return (vals && vals[0] && vals[0].id) || null;
+    }
+
     _trySetMemberFilter(feedId, memberKeys) {
       try {
-        // ===== TIEFEN-INSPEKTION: this.dataBindings (Plural = Manager) =====
-        const mgr = this.dataBindings;
-        this._dumpObj('dataBindings(Plural)', mgr);
-
-        if (mgr && typeof mgr.getDataBinding === 'function') {
-          try {
-            const bound = mgr.getDataBinding('dataBinding');
-            this._dumpObj('getDataBinding("dataBinding")', bound);
-            if (bound && typeof bound.getDataSource === 'function') {
-              const dsrc = bound.getDataSource();
-              this._dumpObj('binding.getDataSource()', dsrc);
-            }
-          } catch(e) { console.log('HCM getDataBinding error:', e.message); }
+        const binding = this._getBinding();
+        if (!binding || typeof binding.getDataSource !== 'function') {
+          console.warn('HCM: binding/getDataSource nicht verfügbar');
+          return;
         }
-        if (mgr && typeof mgr.getDataSource === 'function') {
-          try { this._dumpObj('dataBindings.getDataSource()', mgr.getDataSource()); }
-          catch(e) { console.log('HCM mgr.getDataSource error:', e.message); }
+        const ds = binding.getDataSource();
+        if (!ds || typeof ds.setDimensionFilter !== 'function') {
+          console.warn('HCM: setDimensionFilter nicht verfügbar');
+          return;
         }
-        // ===================================================================
 
-        const db = this.dataBinding;
-        if (!db) { console.warn('HCM: dataBinding null'); return; }
+        const dimId = this._resolveDimensionId(feedId);
+        if (!dimId) { console.warn('HCM: keine Dimension-ID für', feedId); return; }
 
-        const filterFns = ['setMemberFilter','setFilter','setDimensionFilter',
-                           'applyFilter','setSelection','setSelections'];
-        const availFn = filterFns.find(fn => typeof db[fn] === 'function');
-        console.log('HCM Filter-Methode auf dataBinding:', availFn || 'KEINE');
+        // ── LinkedAnalysis einmalig inspizieren (Diagnose) ──
+        if (!this._laInspected && typeof binding.getLinkedAnalysis === 'function') {
+          this._laInspected = true;
+          try { this._dumpObj('LinkedAnalysis', binding.getLinkedAnalysis()); }
+          catch (e) { console.log('HCM LA-dump error:', e.message); }
+        }
 
-        if (!availFn) return;
-        const USE_FN = availFn;
-
+        // ── Filter entfernen ──
         if (!memberKeys || memberKeys.length === 0) {
-          db[USE_FN](feedId, []);
+          if (typeof ds.removeDimensionFilter === 'function') {
+            ds.removeDimensionFilter(dimId);
+            console.log('HCM removeDimensionFilter:', dimId);
+          }
           return;
         }
 
-        // Bei dateColumn: Schlüssel aus Feed-Metadata suchen
-        if (feedId === 'dateColumn') {
-          const feeds   = db.metadata && db.metadata.feeds;
-          const members = (feeds && feeds.dateColumn && feeds.dateColumn.values) || [];
-          console.log('HCM dateColumn members in feed:', members.slice(0, 3));
-          const resolved = memberKeys.map(isoNoDash => {
-            const isoDate = `${isoNoDash.slice(0,4)}-${isoNoDash.slice(4,6)}-${isoNoDash.slice(6,8)}`;
-            const found = members.find(m => {
-              const id    = String(m.id    || '');
-              const label = String(m.label || '');
-              return id === isoNoDash || id === isoDate ||
-                     normalizeDateStr(label) === isoDate || normalizeDateStr(id) === isoDate;
-            });
-            const key = found ? found.id : isoNoDash;
-            console.log('HCM date resolved:', isoNoDash, '→', key);
-            return key;
-          });
-          db[USE_FN](feedId, resolved);
-          return;
-        }
-
-        // Status/Schicht: member IDs aus Feed-Metadata lesen
-        const feeds   = db.metadata && db.metadata.feeds;
-        const feedMeta = feeds && feeds[feedId];
-        const members  = (feedMeta && feedMeta.values) || [];
-        console.log('HCM', feedId, 'members in feed:', members.slice(0, 5));
-
-        const resolved = memberKeys.map(label => {
-          const found = members.find(m =>
-            String(m.label || '') === label || String(m.id || '') === label
-          );
-          const key = found ? found.id : label;
-          console.log('HCM', feedId, 'resolved:', label, '→', key);
-          return key;
-        });
-
-        db.setMemberFilter(feedId, resolved);
+        // ── Filter setzen (Array von Member-Keys) ──
+        console.log('HCM setDimensionFilter:', dimId, JSON.stringify(memberKeys));
+        ds.setDimensionFilter(dimId, memberKeys);
       } catch (e) {
-        console.warn('HCM setMemberFilter Fehler:', e.message);
+        console.warn('HCM Filter Fehler:', e.message);
       }
     }
 
