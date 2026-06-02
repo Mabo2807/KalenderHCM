@@ -164,19 +164,18 @@
       try {
         const db = this.dataBinding;
 
-        if (!db) { console.warn('HCM v1.4.0: dataBinding null'); return; }
+        if (!db) { console.warn('HCM: dataBinding null'); return; }
 
-        // Alle Methoden auf dataBinding ausgeben
+        // state-Objekt inspizieren
         try {
-          const allKeys = [];
-          for (const k in db) allKeys.push(typeof db[k] === 'function' ? k+'()' : k);
-          console.log('HCM dataBinding Keys:', allKeys.join(', '));
-          const proto = Object.getPrototypeOf(db);
-          if (proto) {
-            const pKeys = Object.getOwnPropertyNames(proto);
-            console.log('HCM dataBinding Prototype:', pKeys.join(', '));
+          const st = db.state;
+          console.log('HCM state type:', typeof st, JSON.stringify(st)?.substring(0,200));
+          if (st && typeof st === 'object') {
+            const stKeys = [];
+            for (const k in st) stKeys.push(k + ':' + typeof st[k]);
+            console.log('HCM state keys:', stKeys.join(', '));
           }
-        } catch(e) { console.log('HCM dump error:', e.message); }
+        } catch(e) { console.log('HCM state dump error:', e.message); }
 
         // Alternative Methoden versuchen
         const filterFns = ['setMemberFilter','setFilter','setDimensionFilter',
