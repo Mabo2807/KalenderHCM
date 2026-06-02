@@ -160,35 +160,51 @@
 
     // ── SAC Linked Analysis ───────────────────────────────────────────────────
 
+    _dumpObj(label, obj) {
+      try {
+        if (obj === null || obj === undefined) { console.log('HCM', label, '=', obj); return; }
+        const t = typeof obj;
+        if (t !== 'object' && t !== 'function') { console.log('HCM', label, '=', t, obj); return; }
+        const own = [];
+        for (const k in obj) { try { own.push(k + ':' + typeof obj[k]); } catch(e){ own.push(k+':?'); } }
+        const proto = Object.getPrototypeOf(obj);
+        const pm = proto ? Object.getOwnPropertyNames(proto).filter(n => n !== 'constructor') : [];
+        console.log('HCM', label, 'KEYS:', own.join(', '));
+        console.log('HCM', label, 'PROTO:', pm.join(', '));
+      } catch(e) { console.log('HCM dump', label, 'error:', e.message); }
+    }
+
     _trySetMemberFilter(feedId, memberKeys) {
       try {
-        const db = this.dataBinding;
+        // ===== TIEFEN-INSPEKTION: this.dataBindings (Plural = Manager) =====
+        const mgr = this.dataBindings;
+        this._dumpObj('dataBindings(Plural)', mgr);
 
+        if (mgr && typeof mgr.getDataBinding === 'function') {
+          try {
+            const bound = mgr.getDataBinding('dataBinding');
+            this._dumpObj('getDataBinding("dataBinding")', bound);
+            if (bound && typeof bound.getDataSource === 'function') {
+              const dsrc = bound.getDataSource();
+              this._dumpObj('binding.getDataSource()', dsrc);
+            }
+          } catch(e) { console.log('HCM getDataBinding error:', e.message); }
+        }
+        if (mgr && typeof mgr.getDataSource === 'function') {
+          try { this._dumpObj('dataBindings.getDataSource()', mgr.getDataSource()); }
+          catch(e) { console.log('HCM mgr.getDataSource error:', e.message); }
+        }
+        // ===================================================================
+
+        const db = this.dataBinding;
         if (!db) { console.warn('HCM: dataBinding null'); return; }
 
-        // state-Objekt inspizieren
-        try {
-          const st = db.state;
-          console.log('HCM state type:', typeof st, JSON.stringify(st)?.substring(0,200));
-          if (st && typeof st === 'object') {
-            const stKeys = [];
-            for (const k in st) stKeys.push(k + ':' + typeof st[k]);
-            console.log('HCM state keys:', stKeys.join(', '));
-          }
-        } catch(e) { console.log('HCM state dump error:', e.message); }
-
-        // Alternative Methoden versuchen
         const filterFns = ['setMemberFilter','setFilter','setDimensionFilter',
                            'applyFilter','setSelection','setSelections'];
         const availFn = filterFns.find(fn => typeof db[fn] === 'function');
-        console.log('HCM verfügbare Filter-Methode:', availFn || 'KEINE GEFUNDEN');
+        console.log('HCM Filter-Methode auf dataBinding:', availFn || 'KEINE');
 
-        if (!availFn) {
-          console.warn('HCM: Keine Filter-Methode verfügbar auf dataBinding');
-          return;
-        }
-
-        // Gefundene Methode verwenden
+        if (!availFn) return;
         const USE_FN = availFn;
 
         if (!memberKeys || memberKeys.length === 0) {
