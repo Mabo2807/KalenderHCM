@@ -443,6 +443,110 @@
       this._attachListeners();
     }
 
+    // ── Popup ─────────────────────────────────────────────────────────────────
+
+    _showPopup(date, status, schicht, anchorEl) {
+      this._hidePopup();
+
+      const colors  = this._effectiveColors();
+      const scColors = this._effectiveSchichtColors();
+      const parts   = date.split('-'); // [yyyy, mm, dd]
+      const d       = new Date(+parts[0], +parts[1]-1, +parts[2]);
+      const wdName  = WEEKDAYS_DE[d.getDay()];
+      const moName  = MONTHS_DE[d.getMonth()];
+      const dateLabel = `${wdName}, ${+parts[2]}. ${moName} ${parts[0]}`;
+
+      const accentHex    = status  ? (isSafeHex(colors[status]    || '') ? colors[status]    : '#556b82') : null;
+      const schichtHex   = schicht ? (isSafeHex(scColors[schicht] || '') ? scColors[schicht] : '#0e7490') : null;
+
+      const isFiltered = this._selectedDate === date;
+
+      // Popup-HTML — angelehnt an das native SAC-Popup
+      const popup = document.createElement('div');
+      popup.className = 'hcm-popup';
+      popup.dataset.popup = '1';
+
+      // Measure-Block: Anzahl Records (immer 1 bei Tagesklick)
+      const statusDot = accentHex
+        ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${accentHex};margin-right:5px;vertical-align:middle;"></span>`
+        : '';
+      const schichtRow = schicht
+        ? `<div class="hcm-popup-sub"><span style="color:${schichtHex};font-weight:600;">${esc(schicht)}</span></div>`
+        : '';
+
+      popup.innerHTML = `
+        <div class="hcm-popup-body">
+          <div class="hcm-popup-measure">Count Distinct Measure</div>
+          <div class="hcm-popup-value">1</div>
+          <div class="hcm-popup-divider"></div>
+          <div class="hcm-popup-row">${statusDot}<span style="color:${accentHex || 'inherit'};font-weight:600;">${esc(status || '—')}</span></div>
+          <div class="hcm-popup-sub">${esc(dateLabel)}</div>
+          ${schichtRow}
+        </div>
+        <div class="hcm-popup-actions">
+          <button class="hcm-popup-btn hcm-popup-btn--filter" title="Als Filter setzen">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 2h14l-5 6v5l-4-2V8L1 2z"/>
+            </svg>
+          </button>
+          <button class="hcm-popup-btn hcm-popup-btn--close" title="Schlie&#223;en">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </button>
+        </div>
+      `;
+
+      // Positionieren relativ zum Widget-Root
+      const hostRect   = this.getBoundingClientRect();
+      const cellRect   = anchorEl.getBoundingClientRect();
+      let top  = cellRect.bottom - hostRect.top + 4;
+      let left = cellRect.left   - hostRect.left;
+
+      // Overflow rechts korrigieren
+      const popupW = 180;
+      if (left + popupW > hostRect.width) left = hostRect.width - popupW - 4;
+      if (left < 0) left = 4;
+
+      popup.style.top  = top  + 'px';
+      popup.style.left = left + 'px';
+
+      this._shadowRoot.appendChild(popup);
+
+      // Filter-Button
+      popup.querySelector('.hcm-popup-btn--filter').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isDeselect   = this._selectedDate === date;
+        this._selectedDate = isDeselect ? null : date;
+        this._trySetMemberFilter('dateColumn',
+          this._selectedDate ? [this._selectedDate.replace(/-/g,'')] : []);
+        this._hidePopup();
+        this._render();
+        this._fireEvent('onDayClick', { date, status, selected: !isDeselect });
+        if (!isDeselect && this._navigationUrl) {
+          const url = this._navigationUrl
+            .replace('{date}',   encodeURIComponent(date))
+            .replace('{status}', encodeURIComponent(status));
+          this._openInNewTab ? window.open(url, '_blank') : (window.location.href = url);
+        }
+      });
+
+      // Schließen-Button
+      popup.querySelector('.hcm-popup-btn--close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._hidePopup();
+      });
+
+      // Klick außerhalb schließt Popup
+      const onOutside = () => { this._hidePopup(); };
+      this._shadowRoot.addEventListener('click', onOutside, { once: true });
+      document.addEventListener('click', onOutside, { once: true });
+    }
+
+    _hidePopup() {
+      this._shadowRoot.querySelectorAll('.hcm-popup').forEach(p => p.remove());
+    }
+
     // ── Event-Listener ────────────────────────────────────────────────────────
 
     _attachListeners() {
@@ -460,37 +564,16 @@
         this._render();
       });
 
-      // Tag-Zellen: Toggle-Selektion + Cross-Widget-Filter
+      // Tag-Zellen: Popup anzeigen
       root.querySelectorAll('.hcm-day[data-date]').forEach(cell => {
         if (cell.classList.contains('hcm-day--outside')) return;
 
-        cell.addEventListener('click', () => {
+        cell.addEventListener('click', (e) => {
+          e.stopPropagation();
           const date   = cell.dataset.date;
           const status = cell.dataset.status;
-
-          // Toggle: gleicher Tag → abwählen
-          const isDeselect   = this._selectedDate === date;
-          this._selectedDate = isDeselect ? null : date;
-
-          this._trySetMemberFilter(
-            'dateColumn',
-            this._selectedDate ? [this._selectedDate.replace(/-/g,'')] : []
-          );
-
-          this._render();
-
-          this._fireEvent('onDayClick', {
-            date,
-            status,
-            selected: !isDeselect,
-          });
-
-          if (!isDeselect && this._navigationUrl) {
-            const url = this._navigationUrl
-              .replace('{date}',   encodeURIComponent(date))
-              .replace('{status}', encodeURIComponent(status));
-            this._openInNewTab ? window.open(url, '_blank') : (window.location.href = url);
-          }
+          const schicht = this._schichtMap.get(date) || '';
+          this._showPopup(date, status, schicht, cell);
         });
       });
 

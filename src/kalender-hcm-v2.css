@@ -254,3 +254,90 @@
 }
 
 .hcm-legend-label { font-size: 11px; }
+
+/* ── Popup (native SAC-Stil) ──────────────────────────────────────────────── */
+.hcm-root { position: relative; }
+
+.hcm-popup {
+  position: absolute;
+  background: var(--sap-tile-bg);
+  border: 1px solid var(--sap-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  z-index: 200;
+  min-width: 168px;
+  max-width: 220px;
+  overflow: hidden;
+  animation: hcm-popup-in 0.1s ease;
+}
+@keyframes hcm-popup-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.hcm-popup-body {
+  padding: 10px 12px 8px;
+}
+
+.hcm-popup-measure {
+  font-size: 10px;
+  color: var(--sap-text-secondary);
+  letter-spacing: 0.2px;
+  margin-bottom: 1px;
+}
+
+.hcm-popup-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--sap-text);
+  line-height: 1.2;
+}
+
+.hcm-popup-divider {
+  height: 1px;
+  background: var(--sap-border);
+  margin: 7px 0 6px;
+}
+
+.hcm-popup-row {
+  font-size: 12px;
+  color: var(--sap-text);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.hcm-popup-sub {
+  font-size: 11px;
+  color: var(--sap-text-secondary);
+  margin-top: 3px;
+}
+
+.hcm-popup-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  border-top: 1px solid var(--sap-border);
+  background: #f9f9f9;
+}
+
+.hcm-popup-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 6px;
+  border-radius: 4px;
+  color: var(--sap-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+.hcm-popup-btn:hover {
+  background: var(--sap-bg);
+  color: var(--sap-brand);
+}
+.hcm-popup-btn--close:hover {
+  color: var(--sap-negative);
+}
