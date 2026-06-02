@@ -474,47 +474,65 @@
         ? `<div class="hcm-popup-sub"><span style="color:${schichtHex};font-weight:600;">${esc(schicht)}</span></div>`
         : '';
 
+      const schichtRowHtml = schicht
+        ? `<div style="font-size:11px;color:#556b82;margin-top:3px;"><span style="color:${schichtHex};font-weight:600;">${esc(schicht)}</span></div>`
+        : '';
+
       popup.innerHTML = `
-        <div class="hcm-popup-body">
-          <div class="hcm-popup-measure">Count Distinct Measure</div>
-          <div class="hcm-popup-value">1</div>
-          <div class="hcm-popup-divider"></div>
-          <div class="hcm-popup-row">${statusDot}<span style="color:${accentHex || 'inherit'};font-weight:600;">${esc(status || '—')}</span></div>
-          <div class="hcm-popup-sub">${esc(dateLabel)}</div>
-          ${schichtRow}
+        <div style="padding:10px 12px 8px;">
+          <div style="font-size:10px;color:#556b82;letter-spacing:0.2px;margin-bottom:1px;">Count Distinct Measure</div>
+          <div style="font-size:22px;font-weight:700;color:#131e29;line-height:1.2;">1</div>
+          <div style="height:1px;background:#e0e0e0;margin:7px 0 6px;"></div>
+          <div style="font-size:12px;color:#131e29;display:flex;align-items:center;gap:3px;">
+            ${statusDot}<span style="color:${accentHex || 'inherit'};font-weight:600;">${esc(status || '&#8212;')}</span>
+          </div>
+          <div style="font-size:11px;color:#556b82;margin-top:3px;">${esc(dateLabel)}</div>
+          ${schichtRowHtml}
         </div>
-        <div class="hcm-popup-actions">
-          <button class="hcm-popup-btn hcm-popup-btn--filter" title="Als Filter setzen">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M1 2h14l-5 6v5l-4-2V8L1 2z"/>
-            </svg>
+        <div style="display:flex;align-items:center;gap:2px;padding:5px 8px;border-top:1px solid #e0e0e0;background:#f9f9f9;">
+          <button data-action="filter" title="Als Filter setzen" style="background:none;border:none;cursor:pointer;padding:5px 6px;border-radius:4px;color:#556b82;display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2h14l-5 6v5l-4-2V8L1 2z"/></svg>
           </button>
-          <button class="hcm-popup-btn hcm-popup-btn--close" title="Schlie&#223;en">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" fill="none"/>
-            </svg>
+          <button data-action="close" title="Schlie&#223;en" style="background:none;border:none;cursor:pointer;padding:5px 6px;border-radius:4px;color:#556b82;display:flex;align-items:center;justify-content:center;">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
           </button>
         </div>
       `;
 
-      // Positionieren relativ zum Widget-Root
-      const hostRect   = this.getBoundingClientRect();
-      const cellRect   = anchorEl.getBoundingClientRect();
-      let top  = cellRect.bottom - hostRect.top + 4;
-      let left = cellRect.left   - hostRect.left;
+      // position:fixed → Viewport-Koordinaten, funktioniert in SAC-iframes
+      const cellRect = anchorEl.getBoundingClientRect();
+      const popupW   = 190;
+      const vw       = window.innerWidth || document.documentElement.clientWidth;
 
-      // Overflow rechts korrigieren
-      const popupW = 180;
-      if (left + popupW > hostRect.width) left = hostRect.width - popupW - 4;
-      if (left < 0) left = 4;
+      let top  = cellRect.bottom + 6;
+      let left = cellRect.left;
+      if (left + popupW > vw - 8) left = vw - popupW - 8;
+      if (left < 8) left = 8;
 
-      popup.style.top  = top  + 'px';
-      popup.style.left = left + 'px';
+      popup.style.cssText = `
+        position:fixed;
+        top:${top}px;
+        left:${left}px;
+        z-index:9999;
+        background:#ffffff;
+        border:1px solid #d9d9d9;
+        border-radius:8px;
+        box-shadow:0 4px 20px rgba(0,0,0,0.18);
+        min-width:${popupW}px;
+        max-width:240px;
+        overflow:hidden;
+        font-family:'72',Arial,Helvetica,sans-serif;
+        font-size:13px;
+        color:#131e29;
+        animation:none;
+      `;
 
-      this._shadowRoot.appendChild(popup);
+      // Popup direkt ans document.body hängen — außerhalb Shadow DOM,
+      // damit kein overflow:hidden des Widgets das Popup abschneidet
+      document.body.appendChild(popup);
 
       // Filter-Button
-      popup.querySelector('.hcm-popup-btn--filter').addEventListener('click', (e) => {
+      popup.querySelector('[data-action="filter"]').addEventListener('click', (e) => {
         e.stopPropagation();
         const isDeselect   = this._selectedDate === date;
         this._selectedDate = isDeselect ? null : date;
@@ -532,19 +550,26 @@
       });
 
       // Schließen-Button
-      popup.querySelector('.hcm-popup-btn--close').addEventListener('click', (e) => {
+      popup.querySelector('[data-action="close"]').addEventListener('click', (e) => {
         e.stopPropagation();
         this._hidePopup();
       });
 
-      // Klick außerhalb schließt Popup
-      const onOutside = () => { this._hidePopup(); };
-      this._shadowRoot.addEventListener('click', onOutside, { once: true });
-      document.addEventListener('click', onOutside, { once: true });
+      // Klick außerhalb schließt Popup (kurzer Delay damit der aktuelle Klick nicht sofort schließt)
+      setTimeout(() => {
+        const onOutside = (e) => {
+          if (!popup.contains(e.target)) {
+            this._hidePopup();
+            document.removeEventListener('click', onOutside, true);
+          }
+        };
+        document.addEventListener('click', onOutside, true);
+      }, 50);
     }
 
     _hidePopup() {
-      this._shadowRoot.querySelectorAll('.hcm-popup').forEach(p => p.remove());
+      // Popup liegt im document.body (außerhalb Shadow DOM)
+      document.querySelectorAll('.hcm-popup[data-popup]').forEach(p => p.remove());
     }
 
     // ── Event-Listener ────────────────────────────────────────────────────────
