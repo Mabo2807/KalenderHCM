@@ -163,17 +163,26 @@
     _trySetMemberFilter(feedId, memberKeys) {
       try {
         const db = this.dataBinding;
-        if (!db || typeof db.setMemberFilter !== 'function') return;
+
+        // DEBUG: Verfügbarkeit prüfen
+        console.log('HCM setMemberFilter verfügbar:', typeof db?.setMemberFilter);
+        console.log('HCM feedId:', feedId, 'keys:', memberKeys);
+
+        if (!db || typeof db.setMemberFilter !== 'function') {
+          console.warn('HCM: setMemberFilter nicht verfügbar auf dataBinding');
+          return;
+        }
 
         if (!memberKeys || memberKeys.length === 0) {
           db.setMemberFilter(feedId, []);
           return;
         }
 
-        // Bei dateColumn: Schlüssel aus Feed-Metadata suchen (SAC-Keys = YYYYMMDD)
+        // Bei dateColumn: Schlüssel aus Feed-Metadata suchen
         if (feedId === 'dateColumn') {
           const feeds   = db.metadata && db.metadata.feeds;
           const members = (feeds && feeds.dateColumn && feeds.dateColumn.values) || [];
+          console.log('HCM dateColumn members in feed:', members.slice(0, 3));
           const resolved = memberKeys.map(isoNoDash => {
             const isoDate = `${isoNoDash.slice(0,4)}-${isoNoDash.slice(4,6)}-${isoNoDash.slice(6,8)}`;
             const found = members.find(m => {
@@ -182,15 +191,32 @@
               return id === isoNoDash || id === isoDate ||
                      normalizeDateStr(label) === isoDate || normalizeDateStr(id) === isoDate;
             });
-            return found ? found.id : isoNoDash;
+            const key = found ? found.id : isoNoDash;
+            console.log('HCM date resolved:', isoNoDash, '→', key);
+            return key;
           });
           db.setMemberFilter(feedId, resolved);
           return;
         }
 
-        db.setMemberFilter(feedId, memberKeys);
+        // Status/Schicht: member IDs aus Feed-Metadata lesen
+        const feeds   = db.metadata && db.metadata.feeds;
+        const feedMeta = feeds && feeds[feedId];
+        const members  = (feedMeta && feedMeta.values) || [];
+        console.log('HCM', feedId, 'members in feed:', members.slice(0, 5));
+
+        const resolved = memberKeys.map(label => {
+          const found = members.find(m =>
+            String(m.label || '') === label || String(m.id || '') === label
+          );
+          const key = found ? found.id : label;
+          console.log('HCM', feedId, 'resolved:', label, '→', key);
+          return key;
+        });
+
+        db.setMemberFilter(feedId, resolved);
       } catch (e) {
-        console.warn('KalenderHCM: setMemberFilter nicht verfügbar:', e.message);
+        console.warn('HCM setMemberFilter Fehler:', e.message);
       }
     }
 
