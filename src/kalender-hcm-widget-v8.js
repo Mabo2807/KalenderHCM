@@ -1,4 +1,4 @@
-/**
+﻿/**
  * kalender-hcm.js
  * SAC Custom Widget: KalenderHCM
  * Web Component: <com-custom-kalenderhcm>
@@ -365,7 +365,7 @@
     // ── Render ────────────────────────────────────────────────────────────────
 
     _render() {
-      const cssUrl        = _WIDGET_BASE_URL + 'kalender-hcm.css';
+      const cssUrl        = _WIDGET_BASE_URL + 'kalender-hcm-v8.css';
       const d             = this._currentDate;
       const year          = d.getFullYear();
       const month         = d.getMonth();
