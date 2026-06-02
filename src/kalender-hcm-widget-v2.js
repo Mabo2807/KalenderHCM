@@ -32,7 +32,7 @@
 
   const WEEKDAYS_DE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   const MONTHS_DE   = [
-    'Januar','Februar','MÃ¤rz','April','Mai','Juni',
+    'Januar','Februar','März','April','Mai','Juni',
     'Juli','August','September','Oktober','November','Dezember',
   ];
 
@@ -86,8 +86,9 @@
       this._firstDayOfWeek  = 1;
       this._showWeekends    = true;
       // Interaktiver Selektionsstatus
-      this._selectedDate    = null;   // Einzelnes Datum (String YYYY-MM-DD oder null)
-      this._selectedStatuses = new Set(); // Set von Status-Strings (Legende Multi-Select)
+      this._selectedDate     = null;        // Einzelnes Datum (String YYYY-MM-DD oder null)
+      this._selectedStatuses = new Set();   // Set von Status-Strings (Legende Multi-Select)
+      this._selectedSchichten = new Set();  // Set von Schicht-Strings (Legende Multi-Select)
     }
 
     onCustomWidgetBeforeUpdate(changedProperties) {}
@@ -117,7 +118,7 @@
       this._render();
     }
 
-    // â”€â”€ Public SAC scripting methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Public SAC scripting methods ──────────────────────────────────────────
 
     setMonth(isoDate) {
       const d = parseISODateLocal(isoDate);
@@ -129,7 +130,7 @@
       this._render();
     }
 
-    /** Datum programmatisch auswÃ¤hlen + Filter setzen. Leer = Auswahl aufheben. */
+    /** Datum programmatisch auswählen + Filter setzen. Leer = Auswahl aufheben. */
     setSelectedDate(isoDate) {
       const date = isoDate ? normalizeDateStr(String(isoDate)) : null;
       this._selectedDate = date || null;
@@ -137,16 +138,18 @@
       this._render();
     }
 
-    /** Alle Selektionen (Tag + Legende) zurÃ¼cksetzen. */
+    /** Alle Selektionen (Tag + Legende) zurücksetzen. */
     clearSelection() {
-      this._selectedDate     = null;
-      this._selectedStatuses = new Set();
-      this._trySetMemberFilter('dateColumn',   []);
-      this._trySetMemberFilter('statusColumn', []);
+      this._selectedDate      = null;
+      this._selectedStatuses  = new Set();
+      this._selectedSchichten = new Set();
+      this._trySetMemberFilter('dateColumn',    []);
+      this._trySetMemberFilter('statusColumn',  []);
+      this._trySetMemberFilter('schichtColumn', []);
       this._render();
     }
 
-    // â”€â”€ SAC Linked Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── SAC Linked Analysis ───────────────────────────────────────────────────
 
     _trySetMemberFilter(feedId, memberKeys) {
       try {
@@ -158,7 +161,7 @@
           return;
         }
 
-        // Bei dateColumn: SchlÃ¼ssel aus Feed-Metadata suchen (SAC-Keys = YYYYMMDD)
+        // Bei dateColumn: Schlüssel aus Feed-Metadata suchen (SAC-Keys = YYYYMMDD)
         if (feedId === 'dateColumn') {
           const feeds   = db.metadata && db.metadata.feeds;
           const members = (feeds && feeds.dateColumn && feeds.dateColumn.values) || [];
@@ -178,11 +181,11 @@
 
         db.setMemberFilter(feedId, memberKeys);
       } catch (e) {
-        console.warn('KalenderHCM: setMemberFilter nicht verfÃ¼gbar:', e.message);
+        console.warn('KalenderHCM: setMemberFilter nicht verfügbar:', e.message);
       }
     }
 
-    // â”€â”€ Datenbindung â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Datenbindung ──────────────────────────────────────────────────────────
 
     _processDataBinding() {
       this._statusMap    = new Map();
@@ -277,7 +280,7 @@
       this.dispatchEvent(new CustomEvent(eventName, { detail: payload, bubbles: true, composed: true }));
     }
 
-    // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Render ────────────────────────────────────────────────────────────────
 
     _render() {
       const cssUrl        = _WIDGET_BASE_URL + 'kalender-hcm-v2.css';
@@ -306,8 +309,9 @@
       }
 
       // Sind Legende- oder Datum-Filter aktiv?
-      const hasStatusFilter = this._selectedStatuses.size > 0;
-      const hasDateFilter   = !!this._selectedDate;
+      const hasStatusFilter  = this._selectedStatuses.size > 0;
+      const hasSchichtFilter = this._selectedSchichten.size > 0;
+      const hasDateFilter    = !!this._selectedDate;
 
       const headersHtml = dayNames.map((name, i) =>
         `<div class="hcm-col-header${weekendCols.has(i) ? ' hcm-col-header--weekend' : ''}">${name}</div>`
@@ -340,11 +344,11 @@
         const rawSchichtHex    = schicht ? (schichtColors[schicht] || '#0e7490') : null;
         const accentSchichtHex = rawSchichtHex && isSafeHex(rawSchichtHex) ? rawSchichtHex : (schicht ? '#0e7490' : null);
 
-        // Dimming: Zelle ausgrauen wenn Legende-Filter aktiv und Status nicht ausgewÃ¤hlt
-        const statusMatchesFilter = !hasStatusFilter || (status && this._selectedStatuses.has(status));
-        // Dimming: Zelle ausgrauen wenn Tag-Filter aktiv und nicht der ausgewÃ¤hlte Tag
-        const dateMatchesFilter   = !hasDateFilter   || isoDate === this._selectedDate;
-        const isDimmed = (!statusMatchesFilter || !dateMatchesFilter) && !isSelected;
+        // Dimming: Zelle ausgrauen wenn Filter aktiv und nicht passend
+        const statusMatchesFilter  = !hasStatusFilter  || (status  && this._selectedStatuses.has(status));
+        const schichtMatchesFilter = !hasSchichtFilter || (schicht && this._selectedSchichten.has(schicht));
+        const dateMatchesFilter    = !hasDateFilter    || isoDate === this._selectedDate;
+        const isDimmed = (!statusMatchesFilter || !schichtMatchesFilter || !dateMatchesFilter) && !isSelected;
 
         let classes = 'hcm-day';
         if (isWeekend)  classes += ' hcm-day--weekend';
@@ -379,10 +383,10 @@
         const activeStyle = isActive
           ? `background:${hexToRgba(h,0.18)};border:1px solid ${h};border-radius:6px;padding:1px 6px 1px 2px;`
           : 'padding:1px 6px 1px 2px;';
-        return `<div class="hcm-legend-item${activeCls}" data-status="${esc(name)}" style="${activeStyle}" title="${esc(name)} an/abwÃ¤hlen">
+        return `<div class="hcm-legend-item${activeCls}" data-status="${esc(name)}" style="${activeStyle}" title="${esc(name)} an/abwählen">
           <span class="hcm-legend-swatch" style="background:${hexToRgba(h,0.15)};border-color:${h};"></span>
           <span class="hcm-legend-label" style="color:${h};font-weight:${isActive ? '700' : '400'};">${esc(name)}</span>
-          ${isActive ? `<span class="hcm-legend-check" style="color:${h};">âœ“</span>` : ''}
+          ${isActive ? `<span class="hcm-legend-check" style="color:${h};">&#10003;</span>` : ''}
         </div>`;
       }).join('');
 
@@ -390,16 +394,22 @@
       const schichtLegendHtml = Object.entries(DEFAULT_SCHICHT_COLORS)
         .filter(([name]) => !['Frueh','Spaet','Normal'].includes(name))
         .map(([name, hex]) => {
-          const h = isSafeHex(schichtColors[name] || hex) ? (schichtColors[name] || hex) : '#0e7490';
-          return `<div class="hcm-legend-item" data-schicht="${esc(name)}" style="padding:1px 6px 1px 2px;">
+          const h          = isSafeHex(schichtColors[name] || hex) ? (schichtColors[name] || hex) : '#0e7490';
+          const isActive   = this._selectedSchichten.has(name);
+          const activeCls  = isActive ? ' hcm-legend-item--selected' : '';
+          const activeStyle = isActive
+            ? `background:${hexToRgba(h,0.18)};border:1px solid ${h};border-radius:6px;padding:1px 6px 1px 2px;`
+            : 'padding:1px 6px 1px 2px;';
+          return `<div class="hcm-legend-item${activeCls}" data-schicht="${esc(name)}" style="${activeStyle}" title="${esc(name)} an/abw&#228;hlen">
             <span class="hcm-legend-swatch" style="background:${hexToRgba(h,0.18)};border-color:${h};border-radius:2px;"></span>
-            <span class="hcm-legend-label" style="color:${h};font-weight:600;">${esc(name)}</span>
+            <span class="hcm-legend-label" style="color:${h};font-weight:${isActive ? '700' : '600'};">${esc(name)}</span>
+            ${isActive ? `<span class="hcm-legend-check" style="color:${h};">&#10003;</span>` : ''}
           </div>`;
         }).join('');
 
       // Hinweis wenn Filter aktiv
-      const filterHint = hasStatusFilter
-        ? `<div class="hcm-filter-hint">Filter aktiv â€” auf Legende klicken zum Aufheben</div>`
+      const filterHint = (hasStatusFilter || hasSchichtFilter)
+        ? `<div class="hcm-filter-hint">Filter aktiv &#8212; auf Legende klicken zum Aufheben</div>`
         : '';
 
       const legendHtml = `
@@ -433,7 +443,7 @@
       this._attachListeners();
     }
 
-    // â”€â”€ Event-Listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Event-Listener ────────────────────────────────────────────────────────
 
     _attachListeners() {
       const root = this._shadowRoot;
@@ -458,7 +468,7 @@
           const date   = cell.dataset.date;
           const status = cell.dataset.status;
 
-          // Toggle: gleicher Tag â†’ abwÃ¤hlen
+          // Toggle: gleicher Tag → abwählen
           const isDeselect   = this._selectedDate === date;
           this._selectedDate = isDeselect ? null : date;
 
@@ -505,6 +515,31 @@
 
           this._fireEvent('onStatusFilter', {
             selectedStatuses: [...this._selectedStatuses],
+          });
+        });
+      });
+
+      // Legende-Items: Schicht Multi-Select Toggle
+      root.querySelectorAll('.hcm-legend-item[data-schicht]').forEach(item => {
+        item.addEventListener('click', () => {
+          const schicht = item.dataset.schicht;
+
+          if (this._selectedSchichten.has(schicht)) {
+            this._selectedSchichten.delete(schicht);
+          } else {
+            this._selectedSchichten.add(schicht);
+          }
+
+          this._trySetMemberFilter(
+            'schichtColumn',
+            [...this._selectedSchichten]
+          );
+
+          this._render();
+
+          this._fireEvent('onStatusFilter', {
+            selectedStatuses: [...this._selectedStatuses],
+            selectedSchichten: [...this._selectedSchichten],
           });
         });
       });
