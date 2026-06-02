@@ -1,4 +1,4 @@
-/**
+﻿/**
  * kalender-hcm.js
  * SAC Custom Widget: KalenderHCM
  * Web Component: <com-custom-kalenderhcm>
