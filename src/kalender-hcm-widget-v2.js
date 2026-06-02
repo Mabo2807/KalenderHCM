@@ -541,6 +541,7 @@
         this._hidePopup();
         this._render();
         this._fireEvent('onDayClick', { date, status, selected: !isDeselect });
+        this._fireFilterChange();
         if (!isDeselect && this._navigationUrl) {
           const url = this._navigationUrl
             .replace('{date}',   encodeURIComponent(date))
@@ -570,6 +571,17 @@
     _hidePopup() {
       // Popup liegt im document.body (außerhalb Shadow DOM)
       document.querySelectorAll('.hcm-popup[data-popup]').forEach(p => p.remove());
+    }
+
+    /** Zentrales Filter-Event — wird nach jeder Selektion gefeuert.
+     *  Payload: { date, selectedStatuses, selectedSchichten }
+     *  date = null wenn kein Tag gewählt, Arrays leer wenn keine Legende aktiv. */
+    _fireFilterChange() {
+      this._fireEvent('onFilterChange', {
+        date:               this._selectedDate,
+        selectedStatuses:   [...this._selectedStatuses],
+        selectedSchichten:  [...this._selectedSchichten],
+      });
     }
 
     // ── Event-Listener ────────────────────────────────────────────────────────
@@ -620,10 +632,7 @@
           );
 
           this._render();
-
-          this._fireEvent('onStatusFilter', {
-            selectedStatuses: [...this._selectedStatuses],
-          });
+          this._fireFilterChange();
         });
       });
 
@@ -638,17 +647,9 @@
             this._selectedSchichten.add(schicht);
           }
 
-          this._trySetMemberFilter(
-            'schichtColumn',
-            [...this._selectedSchichten]
-          );
-
+          this._trySetMemberFilter('schichtColumn', [...this._selectedSchichten]);
           this._render();
-
-          this._fireEvent('onStatusFilter', {
-            selectedStatuses: [...this._selectedStatuses],
-            selectedSchichten: [...this._selectedSchichten],
-          });
+          this._fireFilterChange();
         });
       });
     }

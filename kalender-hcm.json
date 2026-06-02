@@ -1,6 +1,6 @@
 ﻿{
   "id": "com.custom.kalenderhcm",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben fuer SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -70,7 +70,10 @@
       "description": "Wird gefeuert wenn ein Tag angeklickt wird. Payload: {date, status, selected}. selected=false = Toggle aufgehoben."
     },
     "onStatusFilter": {
-      "description": "Wird gefeuert wenn Legende-Filter geaendert wird. Payload: {selectedStatuses: string[]}. Leeres Array = alle Filter aufgehoben."
+      "description": "Wird gefeuert wenn Legende-Filter geaendert wird. Payload: {selectedStatuses: string[], selectedSchichten: string[]}."
+    },
+    "onFilterChange": {
+      "description": "Zentrales Filter-Event nach jeder Selektion. Payload: {date: string|null, selectedStatuses: string[], selectedSchichten: string[]}. Fuer SAC Story Script verwenden."
     }
   },
   "dataBindings": {
