@@ -577,14 +577,12 @@
      *  Schreibt Zustand in window.__hcmFilter (lesbar vom SAC Story Script).
      *  Feuert dann onFilterChange als Trigger für das Script. */
     _fireFilterChange() {
-      const state = {
-        date:              this._selectedDate,
-        selectedStatuses:  [...this._selectedStatuses],
-        selectedSchichten: [...this._selectedSchichten],
-      };
-      // Global Window-Variable als Datenbrücke zum SAC Story Script
-      try { window.__hcmFilter = state; } catch(e) {}
-      this._fireEvent('onFilterChange', state);
+      // SAC Analytics Designer erwartet Strings als Event-Parameter (keine Arrays/Objekte)
+      this._fireEvent('onFilterChange', {
+        date:              this._selectedDate || '',
+        selectedStatuses:  JSON.stringify([...this._selectedStatuses]),
+        selectedSchichten: JSON.stringify([...this._selectedSchichten]),
+      });
     }
 
     // ── Event-Listener ────────────────────────────────────────────────────────
