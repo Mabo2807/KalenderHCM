@@ -1,6 +1,6 @@
 {
   "id": "com.custom.kalenderhcm",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "name": "KalenderHCM",
   "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben fuer SAP Analytics Cloud",
   "newInstancePrefix": "KalenderHCM",
@@ -50,11 +50,27 @@
     },
     "refresh": {
       "description": "Daten neu laden und Widget neu rendern"
+    },
+    "setSelectedDate": {
+      "description": "Tag programmatisch auswaehlen und Linked-Analysis-Filter setzen. Leerer String hebt Auswahl auf.",
+      "parameters": [
+        {
+          "name": "isoDate",
+          "type": "string",
+          "description": "ISO-Datum YYYY-MM-DD oder leer zum Zuruecksetzen"
+        }
+      ]
+    },
+    "clearSelection": {
+      "description": "Auswahl aufheben und alle gesetzten Filter zuruecksetzen"
     }
   },
   "events": {
     "onDayClick": {
-      "description": "Wird gefeuert wenn ein Tag angeklickt wird"
+      "description": "Wird gefeuert wenn ein Tag angeklickt wird. Payload: {date, status, selected}. selected=false = Toggle aufgehoben."
+    },
+    "onStatusFilter": {
+      "description": "Wird gefeuert wenn Legende-Filter geaendert wird. Payload: {selectedStatuses: string[]}. Leeres Array = alle Filter aufgehoben."
     }
   },
   "dataBindings": {
