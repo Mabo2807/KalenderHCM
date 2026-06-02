@@ -164,12 +164,26 @@
       try {
         const db = this.dataBinding;
 
-        // DEBUG: Verfügbarkeit prüfen
-        console.log('HCM setMemberFilter verfügbar:', typeof db?.setMemberFilter);
-        console.log('HCM feedId:', feedId, 'keys:', memberKeys);
+        // DEBUG: alle verfügbaren Methoden auf dataBinding ausgeben
+        if (!db) { console.warn('HCM: dataBinding ist null/undefined'); return; }
 
-        if (!db || typeof db.setMemberFilter !== 'function') {
-          console.warn('HCM: setMemberFilter nicht verfügbar auf dataBinding');
+        try {
+          const allKeys = [];
+          for (const k in db) allKeys.push(k);
+          const protoKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(db) || {});
+          console.log('HCM dataBinding eigene Keys:', JSON.stringify(allKeys));
+          console.log('HCM dataBinding Prototyp-Methoden:', JSON.stringify(protoKeys));
+        } catch(e) { console.log('HCM key-dump Fehler:', e.message); }
+
+        if (typeof db.setMemberFilter !== 'function') {
+          // Alternativen suchen
+          const candidates = ['setFilter','setDimensionFilter','applyFilter',
+                              'setSelection','filter','setMemberFilter',
+                              'setSelections','setGlobalFilter'];
+          candidates.forEach(fn => {
+            if (typeof db[fn] === 'function') console.log('HCM Alternative gefunden:', fn);
+          });
+          console.warn('HCM: setMemberFilter nicht verfügbar');
           return;
         }
 
