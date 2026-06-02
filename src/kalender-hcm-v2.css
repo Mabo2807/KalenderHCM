@@ -1,0 +1,256 @@
+/* ==========================================================================
+   KalenderHCM — SAP Fiori Horizon Design Tokens & Styles
+   ========================================================================== */
+
+:host {
+  --sap-brand:          #0070f2;
+  --sap-bg:             #f5f6f7;
+  --sap-tile-bg:        #ffffff;
+  --sap-text:           #131e29;
+  --sap-text-secondary: #556b82;
+  --sap-border:         #d9d9d9;
+  --sap-shell:          #ffffff;
+  --sap-negative:       #aa0808;
+  --sap-weekend-bg:     #f0f0f0;
+  font-family: '72', Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--sap-text);
+  box-sizing: border-box;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Root */
+.hcm-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sap-tile-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.hcm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--sap-shell);
+  border-bottom: 1px solid var(--sap-border);
+  flex-shrink: 0;
+}
+
+.hcm-nav-btn {
+  background: none;
+  border: 1px solid var(--sap-border);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--sap-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+.hcm-nav-btn:hover {
+  background: var(--sap-bg);
+  color: var(--sap-brand);
+  border-color: var(--sap-brand);
+}
+
+.hcm-title-block { text-align: center; }
+
+.hcm-month-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sap-text);
+  display: block;
+}
+
+.hcm-employee {
+  font-size: 11px;
+  color: var(--sap-text-secondary);
+  margin-top: 1px;
+  display: block;
+}
+
+/* Grid wrapper */
+.hcm-grid-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: var(--sap-bg);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Day-of-week column headers */
+.hcm-col-headers {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.hcm-col-header {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sap-text-secondary);
+  padding: 2px;
+  user-select: none;
+}
+.hcm-col-header--weekend { color: var(--sap-negative); }
+
+/* Day grid — rows set dynamically via style attribute */
+.hcm-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Day cell */
+.hcm-day {
+  background: var(--sap-tile-bg);
+  border-radius: 6px;
+  padding: 4px 2px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.1s;
+  user-select: none;
+  overflow: hidden;
+}
+.hcm-day:hover:not(.hcm-day--outside):not(.hcm-day--today) {
+  box-shadow: 0 0 0 2px var(--sap-brand);
+  z-index: 1;
+  position: relative;
+}
+.hcm-day--weekend { background: var(--sap-weekend-bg); }
+.hcm-day--today   {
+  box-shadow: 0 0 0 2px var(--sap-brand);
+  background: #e8f2fe;
+}
+.hcm-day--outside {
+  opacity: 0.4;
+  cursor: default;
+  background: var(--sap-bg);
+}
+.hcm-day--outside:hover { box-shadow: none; }
+
+.hcm-day--selected {
+  box-shadow: 0 0 0 3px var(--sap-brand) !important;
+  background: #dceeff !important;
+  z-index: 2;
+  position: relative;
+}
+
+.hcm-day--dimmed {
+  opacity: 0.28;
+  transition: opacity 0.15s;
+}
+.hcm-day--dimmed:hover {
+  opacity: 0.6;
+}
+
+.hcm-day-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sap-text);
+  line-height: 1.4;
+}
+
+.hcm-status-label {
+  font-size: clamp(7px, 1.1cqw, 10px);
+  margin-top: 3px;
+  text-align: center;
+  line-height: 1.3;
+  padding: 1px 5px;
+  border-radius: 4px;
+  max-width: 94%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.hcm-schicht-label {
+  font-size: clamp(6px, 1.0cqw, 8px);
+  margin-top: 4px;
+  text-align: center;
+  line-height: 1.3;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  max-width: 94%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* Legend */
+.hcm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--sap-border);
+  background: var(--sap-tile-bg);
+  flex-shrink: 0;
+}
+
+.hcm-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: opacity 0.1s, background 0.1s;
+  user-select: none;
+}
+.hcm-legend-item:hover {
+  opacity: 0.8;
+}
+.hcm-legend-item--selected {
+  font-weight: 700;
+}
+
+.hcm-legend-check {
+  font-size: 10px;
+  margin-left: 1px;
+  font-weight: 700;
+}
+
+.hcm-filter-hint {
+  width: 100%;
+  font-size: 10px;
+  color: var(--sap-brand);
+  font-style: italic;
+  flex-basis: 100%;
+  margin-bottom: 2px;
+}
+
+.hcm-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.hcm-legend-label { font-size: 11px; }
