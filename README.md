@@ -8,29 +8,40 @@ eines Mitarbeiters als farbigen Monatskalender anzeigt.
 Klassische Monatsansicht mit farbigen Tageszellen je nach Status
 (Anwesend, Krank, Urlaub, Feiertag, Sonstiges — frei konfigurierbar).
 
-## Installation & GitHub Pages Hosting
+## Installation — Self-contained ZIP-Upload (empfohlen, in SAC gehostet)
 
-### Schritt 1: Repository auf GitHub erstellen
+Das Widget liegt komplett in SAC — **keine externe URL / kein GitHub** zur Laufzeit
+nötig. CSS ist ins JS inlined, alles wird als ZIP hochgeladen.
 
-1. Gehe zu github.com → **New repository**
-2. Name: `KalenderHCM` (Public)
-3. Repository erstellen
+### Schritt 1: ZIP bauen
 
-### Schritt 2: Code hochladen
-
-```bash
-git remote add origin https://github.com/Mabo2807/KalenderHCM.git
-git push -u origin master
+```powershell
+powershell -ExecutionPolicy Bypass -File build-zip.ps1
 ```
+Erzeugt in `dist/`:
+- `kalender-hcm-widget.js` — self-contained Widget (CSS inline)
+- `kalender-hcm.zip` — Paket aus Widget-JS + icon.png
+- `kalender-hcm-zip.json` — Manifest mit **relativen** Pfaden (`/kalender-hcm-widget.js`, `/icon.png`)
 
-### Schritt 3: GitHub Pages aktivieren
+### Schritt 2: In SAC hochladen
 
-Settings → Pages → Source: `master`, Ordner `/ (root)` → Save
+1. SAC → **Custom Widgets** → **Hinzufügen / Add**
+2. Zuerst die Manifest-JSON wählen: **`dist/kalender-hcm-zip.json`**
+3. Wenn SAC nach der Ressourcen-Datei fragt: **`dist/kalender-hcm.zip`** hochladen
+4. Fertig — das Widget ist jetzt komplett in SAC gespeichert
 
-Widget-URL:
-```
-https://Mabo2807.github.io/KalenderHCM/kalender-hcm.json
-```
+### Wichtig: Cross-Widget-Filterung aktivieren
+
+Nach dem Einfügen ins Story:
+- Widget anklicken → **Verknüpfte Analyse / Linked Analysis**
+- **"All Widgets on the Page"** + ☑️ **"Filter on Data Point Selection"** aktivieren
+- Beide Widgets müssen dasselbe Datenmodell verwenden
+- Klicks wirken nur im **View-Modus**
+
+### Alternative: GitHub Pages Hosting (Legacy)
+
+Die `kalender-hcm.json` (im Root) verweist auf eine externe GitHub-Pages-URL.
+Nur nutzen wenn externes Hosting gewünscht ist — sonst die ZIP-Variante bevorzugen.
 
 ## Data Binding
 

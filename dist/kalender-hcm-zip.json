@@ -1,0 +1,114 @@
+{
+  "id": "com.custom.kalenderhcm",
+  "version": "1.5.0",
+  "name": "KalenderHCM",
+  "description": "HCM-Anwesenheitskalender mit konfigurierbaren Statusfarben fuer SAP Analytics Cloud. Self-contained (CSS inline) fuer ZIP-Upload — keine externe URL noetig.",
+  "newInstancePrefix": "KalenderHCM",
+  "supportsLinkedAnalysisFilterOnSelection": true,
+  "vendor": "",
+  "icon": "/icon.png",
+  "webcomponents": [
+    {
+      "kind": "main",
+      "tag": "com-custom-kalenderhcm",
+      "url": "/kalender-hcm-widget.js",
+      "integrity": "sha384-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "ignoreIntegrity": true
+    }
+  ],
+  "properties": {
+    "currentDate": {
+      "type": "string",
+      "description": "Angezeigter Monat als ISO-Datum (YYYY-MM-DD)",
+      "default": ""
+    },
+    "colorScheme": {
+      "type": "string",
+      "description": "Status-Name als JSON-String z.B. {\"Krank\":\"#e76500\"}",
+      "default": "{}"
+    },
+    "navigationUrl": {
+      "type": "string",
+      "description": "URL-Template bei Tag-Klick. Platzhalter: {date}, {status}",
+      "default": ""
+    },
+    "openInNewTab": {
+      "type": "boolean",
+      "description": "Navigation-URL in neuem Tab oeffnen",
+      "default": true
+    }
+  },
+  "methods": {
+    "setMonth": {
+      "description": "Zu einem bestimmten Monat navigieren",
+      "parameters": [
+        {
+          "name": "isoDate",
+          "type": "string",
+          "description": "ISO-Datum-String YYYY-MM-DD"
+        }
+      ]
+    },
+    "refresh": {
+      "description": "Daten neu laden und Widget neu rendern"
+    },
+    "setSelectedDate": {
+      "description": "Tag programmatisch auswaehlen und Linked-Analysis-Filter setzen. Leerer String hebt Auswahl auf.",
+      "parameters": [
+        {
+          "name": "isoDate",
+          "type": "string",
+          "description": "ISO-Datum YYYY-MM-DD oder leer zum Zuruecksetzen"
+        }
+      ]
+    },
+    "clearSelection": {
+      "description": "Auswahl aufheben und alle gesetzten Filter zuruecksetzen"
+    },
+    "getCurrentFilter": {
+      "description": "Gibt den aktuellen Filterzustand als JSON-String zurueck: {date, selectedStatuses[], selectedSchichten[]}. Im SAC Script nach onFilterChange aufrufen."
+    }
+  },
+  "events": {
+    "onDayClick": {
+      "description": "Wird gefeuert wenn ein Tag angeklickt wird. Payload: {date, status, selected}. selected=false = Toggle aufgehoben."
+    },
+    "onStatusFilter": {
+      "description": "Wird gefeuert wenn Legende-Filter geaendert wird. Payload: {selectedStatuses: string[], selectedSchichten: string[]}."
+    },
+    "onFilterChange": {
+      "description": "Wird nach jeder Selektion gefeuert. Im Script getCurrentFilter() aufrufen um den Filterzustand zu lesen."
+    }
+  },
+  "dataBindings": {
+    "dataBinding": {
+      "feeds": [
+        {
+          "id": "dateColumn",
+          "description": "Datum-Dimension (YYYY-MM-DD)",
+          "type": "dimension"
+        },
+        {
+          "id": "statusColumn",
+          "description": "Statuswert (z.B. Krank, Urlaub, Anwesend)",
+          "type": "dimension"
+        },
+        {
+          "id": "employeeColumn",
+          "description": "Mitarbeitername (optional, fuer Header-Anzeige)",
+          "type": "dimension"
+        },
+        {
+          "id": "schichtColumn",
+          "description": "Schicht (z.B. Fruehschicht, Spaetschicht, Normalschicht)",
+          "type": "dimension"
+        },
+        {
+          "id": "measure",
+          "description": "Beliebige Kennzahl (z.B. Anzahl / #Records)",
+          "type": "mainStructureMember"
+        }
+      ]
+    }
+  }
+}
